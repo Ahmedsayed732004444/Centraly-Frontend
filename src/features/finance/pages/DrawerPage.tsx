@@ -73,13 +73,15 @@ function DrawerContent({ type }: { type: number }) {
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <Link
-            to={type === 2 ? "/finance/drawer/history?type=2" : "/finance/drawer/history?type=1"}
-            className={tokens.btn.ghost + " flex items-center justify-center gap-2 text-gray-600 flex-1 sm:flex-none"}
-          >
-            <History className="w-5 h-5 shrink-0" />
-            <span>تصفح السجل</span>
-          </Link>
+          {canManageSession && (
+            <Link
+              to={type === 2 ? "/finance/drawer/history?type=2" : "/finance/drawer/history?type=1"}
+              className={tokens.btn.ghost + " flex items-center justify-center gap-2 text-gray-600 flex-1 sm:flex-none"}
+            >
+              <History className="w-5 h-5 shrink-0" />
+              <span>تصفح السجل</span>
+            </Link>
+          )}
           {canManageSession && (
             <button
               onClick={handleExport}
