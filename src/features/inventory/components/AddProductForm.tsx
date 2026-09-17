@@ -5,6 +5,7 @@ import { useDepartments, useCategories } from '@/features/inventory/hooks/useInv
 import { tokens } from '@/shared/styles/tokens';
 import { Plus, Trash2 } from 'lucide-react';
 import { ProductResponse, createProductSchema } from '../schemas/inventorySchemas';
+import { compressImage } from '@/shared/utils/compressImage';
 
 type ProductFormValues = z.infer<typeof createProductSchema>;
 
@@ -223,9 +224,9 @@ export function AddProductForm({ onSubmit, initialData, isSubmitting: _ }: AddPr
           accept="image/*"
           className={tokens.input}
           name="image"
-          onChange={(e) => {
+          onChange={async (e) => {
             const file = e.target.files?.[0];
-            setValue('image', file || undefined, { shouldValidate: true });
+            setValue('image', file ? await compressImage(file) : undefined, { shouldValidate: true });
           }}
         />
         {errors.image && <p className="text-red-500 text-xs mt-1">{errors.image.message as string}</p>}
