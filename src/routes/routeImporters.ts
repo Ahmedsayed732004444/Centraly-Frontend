@@ -23,6 +23,7 @@ export const routeImporters = {
 
   products: () => import("@/features/inventory/pages/ProductsPage").then((m) => ({ default: m.ProductsPage })),
   productDetails: () => import("@/features/inventory/pages/ProductDetailsPage").then((m) => ({ default: m.ProductDetailsPage })),
+  publicProduct: () => import("@/features/inventory/pages/PublicProductPage").then((m) => ({ default: m.PublicProductPage })),
   categories: () => import("@/features/inventory/pages/CategoriesPage").then((m) => ({ default: m.CategoriesPage })),
 
   customers: () => import("@/features/contacts/pages/CustomersPage").then((m) => ({ default: m.CustomersPage })),

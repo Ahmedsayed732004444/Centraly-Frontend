@@ -107,6 +107,33 @@ export interface ProductResponse {
   batches: ProductBatchResponse[];
 }
 
+// What GET /products/{id}/public returns - the same shape as ProductBatchResponse/
+// ProductResponse minus supplierId/supplierName/purchasePrice/minQuantityAlert/
+// storageLocation/createdAt, which the backend strips before an anonymous share-link
+// visitor ever sees them (see Centraly-Backend's PublicProductResponse).
+export interface PublicProductBatchResponse {
+  batchId: string;
+  availableQuantity: number;
+  wholesalePrice: number;
+  retailPrice: number;
+  maintenancePrice: number;
+}
+
+export interface PublicProductResponse {
+  productId: string;
+  barcode?: string;
+  name?: string;
+  department: DepartmentSummary;
+  category: CategorySummary;
+  totalQuantity: number;
+  imageUrl?: string;
+  isOutOfStock: boolean;
+  isLowStock: boolean;
+  usage: ProductUsageDto;
+  properties: Record<string, string>;
+  batches: PublicProductBatchResponse[];
+}
+
 export function isMaintenanceProduct(usage?: ProductUsageDto): boolean {
   return usage === ProductUsageDto.MaintenanceOnly || usage === ProductUsageDto.SaleAndMaintenance;
 }

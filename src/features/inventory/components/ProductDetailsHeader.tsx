@@ -1,13 +1,14 @@
-import { Edit } from 'lucide-react';
+import { Edit, Share2 } from 'lucide-react';
 import { ProductResponse } from '@/features/inventory/schemas/inventorySchemas';
 import { Avatar } from '@/shared/components/ui/Avatar';
 
 interface ProductDetailsHeaderProps {
   product: ProductResponse;
   onEditClick: () => void;
+  onShareClick: () => void;
 }
 
-export function ProductDetailsHeader({ product, onEditClick }: ProductDetailsHeaderProps) {
+export function ProductDetailsHeader({ product, onEditClick, onShareClick }: ProductDetailsHeaderProps) {
 
   return (
     <div className="flex justify-between items-start relative z-20 h-20">
@@ -40,7 +41,14 @@ export function ProductDetailsHeader({ product, onEditClick }: ProductDetailsHea
       </div>
 
       <div className="pt-2 shrink-0 flex items-center gap-2">
-        <button 
+        <button
+          onClick={onShareClick}
+          className="flex items-center justify-center w-10 h-10 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-lg transition-colors shadow-sm"
+          title="نسخ رابط مشاركة للمشاهدة فقط"
+        >
+          <Share2 size={18} />
+        </button>
+        <button
           onClick={onEditClick}
           className="flex items-center justify-center w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-sm"
           title="تعديل بيانات المنتج"

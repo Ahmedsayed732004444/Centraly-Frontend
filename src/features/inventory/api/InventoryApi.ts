@@ -1,11 +1,12 @@
 import { apiClient } from "@/lib/axios";
 import { IInventoryRepository } from "@/core/repositories/IInventoryRepository";
 import { PaginatedList } from "@/shared/types/pagination";
-import { 
-  CategoryResponse, 
-  CreateProductRequest, 
-  DepartmentResponse, 
+import {
+  CategoryResponse,
+  CreateProductRequest,
+  DepartmentResponse,
   ProductResponse,
+  PublicProductResponse,
   ProductFilters
 } from "../schemas/inventorySchemas";
 
@@ -54,6 +55,11 @@ export class InventoryRepository implements IInventoryRepository {
 
   async getProduct(id: string): Promise<ProductResponse> {
     const { data } = await apiClient.get<ProductResponse>(`/products/${id}`);
+    return data;
+  }
+
+  async getPublicProduct(id: string): Promise<PublicProductResponse> {
+    const { data } = await apiClient.get<PublicProductResponse>(`/products/${id}/public`);
     return data;
   }
 

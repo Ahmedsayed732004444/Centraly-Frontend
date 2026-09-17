@@ -12,6 +12,7 @@ import { ProductPropertiesCard } from '@/features/inventory/components/ProductPr
 import { ProductOverviewCard } from '@/features/inventory/components/ProductOverviewCard';
 import { ProductNotesCard } from '@/features/inventory/components/ProductNotesCard';
 import { useHeaderStore } from '@/shared/hooks/useHeaderStore';
+import { toast } from 'sonner';
 
 export function ProductDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -35,6 +36,16 @@ export function ProductDetailsPage() {
   if (error || !product) return <div className="p-8 text-center text-red-500">حدث خطأ أثناء تحميل تفاصيل المنتج.</div>;
 
   const closeDrawer = () => setIsDrawerOpen(false);
+
+  const handleShareClick = async () => {
+    const shareUrl = `${window.location.origin}/share/products/${id}`;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success('تم نسخ رابط المشاركة');
+    } catch {
+      toast.error('تعذر نسخ الرابط، انسخه يدويًا: ' + shareUrl);
+    }
+  };
 
   const handleFormSubmit = (formData: z.infer<typeof createProductSchema>) => {
     const payload: CreateProductRequest = { 
@@ -81,7 +92,7 @@ export function ProductDetailsPage() {
 
   return (
     <div className="space-y-4 w-full pb-10 pt-4">
-      <ProductDetailsHeader product={product} onEditClick={() => setIsDrawerOpen(true)} />
+      <ProductDetailsHeader product={product} onEditClick={() => setIsDrawerOpen(true)} onShareClick={handleShareClick} />
       
       <ProductBatchesCard product={product} />
       

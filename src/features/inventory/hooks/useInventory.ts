@@ -43,6 +43,17 @@ export function useProduct(id: string) {
   });
 }
 
+// Backs the public share-link page - unauthenticated, so it must not touch any of the
+// other query keys above (which assume a logged-in session) or retry into a 401 redirect.
+export function usePublicProduct(id: string) {
+  return useQuery({
+    queryKey: ["public-product", id] as const,
+    queryFn: () => inventoryRepository.getPublicProduct(id),
+    enabled: !!id,
+    retry: false,
+  });
+}
+
 // --- Mutations ---
 
 export function useCreateProduct() {

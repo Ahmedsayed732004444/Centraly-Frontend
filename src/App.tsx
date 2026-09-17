@@ -15,6 +15,7 @@ const LoginPage = lazy(() => import("./features/auth/pages/LoginPage").then(modu
 const DashboardPage = lazy(routeImporters.dashboard);
 const ProductsPage = lazy(routeImporters.products);
 const ProductDetailsPage = lazy(routeImporters.productDetails);
+const PublicProductPage = lazy(routeImporters.publicProduct);
 const CategoriesPage = lazy(routeImporters.categories);
 const PosPage = lazy(routeImporters.posPage);
 const SalesHistoryPage = lazy(routeImporters.salesHistory);
@@ -93,6 +94,7 @@ export default function App() {
             <Routes>
               {/* Public */}
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/share/products/:id" element={<PublicProductPage />} />
 
               {/* Protected Ã¢â‚¬â€ wrapped in AppLayout */}
               <Route
