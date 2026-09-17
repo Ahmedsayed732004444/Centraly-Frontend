@@ -55,8 +55,8 @@ export function CustomerPaymentForm({
         <div className="relative">
           <input
             type="number"
-            min="0.01"
-            step="1"
+            min="1"
+            step="any"
             value={paymentAmount}
             onChange={(e) => onPaymentAmountChange(e.target.value)}
             className={tokens.input + ' pl-12 py-3 text-lg font-bold text-left'}
