@@ -36,7 +36,7 @@ export const useCreateUser = () => {
 
 export const useUpdateUser = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (params: { id: string; request: UpdateUserRequest }) => usersApi.updateUser(params),
     onSuccess: (_, variables) => {
@@ -46,6 +46,21 @@ export const useUpdateUser = () => {
     },
     onError: (error) => {
       toast.error(getApiErrorMessage(error, 'حدث خطأ أثناء تحديث المستخدم'));
+    }
+  });
+};
+
+export const useToggleUserStatus = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => usersApi.toggleUserStatus(id),
+    onSuccess: () => {
+      toast.success('تم تغيير حالة المستخدم بنجاح');
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'حدث خطأ أثناء تغيير حالة المستخدم'));
     }
   });
 };

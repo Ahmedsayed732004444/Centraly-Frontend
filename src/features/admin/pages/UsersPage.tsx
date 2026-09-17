@@ -1,12 +1,13 @@
 ﻿import { useState } from 'react';
-import { useUsers } from '../hooks/useUsers';
+import { useUsers, useToggleUserStatus } from '../hooks/useUsers';
 import { UserFormModal } from '../components/UserFormModal';
 import { UsersPageHeader } from '../components/UsersPageHeader';
 import { UsersTable } from '../components/UsersTable';
 
 export function UsersPage() {
   const { data: users, isLoading } = useUsers();
-  
+  const toggleStatus = useToggleUserStatus();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
 
@@ -28,6 +29,7 @@ export function UsersPage() {
         users={users}
         isLoading={isLoading}
         onEdit={handleEdit}
+        onToggleStatus={(id) => toggleStatus.mutate(id)}
       />
 
       <UserFormModal 

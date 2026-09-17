@@ -4,6 +4,7 @@ export interface UserResponse {
   id: string;
   username: string;
   roles: string[];
+  isDisabled: boolean;
 }
 
 export const userFormSchema = z.object({

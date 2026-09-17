@@ -20,4 +20,8 @@ export const usersApi = {
   updateUser: async ({ id, request }: { id: string; request: UpdateUserRequest }): Promise<void> => {
     await apiClient.put(`/users/${id}`, request);
   },
+
+  toggleUserStatus: async (id: string): Promise<void> => {
+    await apiClient.patch(`/users/${id}/toggle-status`);
+  },
 };

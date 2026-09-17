@@ -1,4 +1,4 @@
-import { Edit, Shield } from 'lucide-react';
+import { Edit, Shield, ToggleLeft, ToggleRight } from 'lucide-react';
 import { RowActions } from '@/shared/components/ui/RowActions';
 import { Avatar } from '@/shared/components/ui/Avatar';
 import { Badge } from '@/shared/components/ui/Badge';
@@ -7,13 +7,15 @@ interface User {
   id: string;
   username: string;
   roles: string[];
+  isDisabled: boolean;
 }
 interface UsersTableProps {
   users: User[] | undefined;
   isLoading: boolean;
   onEdit: (id: string) => void;
+  onToggleStatus: (id: string) => void;
 }
-export function UsersTable({ users, isLoading, onEdit }: UsersTableProps) {
+export function UsersTable({ users, isLoading, onEdit, onToggleStatus }: UsersTableProps) {
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
       {isLoading ? (
@@ -30,6 +32,7 @@ export function UsersTable({ users, isLoading, onEdit }: UsersTableProps) {
               <tr className="border-b border-slate-100">
                 <th className="p-4 sm:p-5 px-5 sm:px-8 font-semibold text-slate-500 text-xs">تفاصيل المستخدم</th>
                 <th className="p-4 sm:p-5 font-semibold text-slate-500 text-xs">الأدوار الممنوحة</th>
+                <th className="p-4 sm:p-5 font-semibold text-slate-500 text-xs">الحالة</th>
                 <th className="p-4 sm:p-5 px-5 sm:px-8 font-semibold text-slate-500 text-xs w-20 sm:w-32 text-center">الإجراءات</th>
               </tr>
             </thead>
@@ -60,8 +63,21 @@ export function UsersTable({ users, isLoading, onEdit }: UsersTableProps) {
                       ))}
                     </div>
                   </td>
+                  <td className="p-4 sm:p-5">
+                    <Badge variant={user.isDisabled ? 'danger' : 'success'}>
+                      {user.isDisabled ? 'معطل' : 'نشط'}
+                    </Badge>
+                  </td>
                   <td className="p-4 sm:p-5 px-5 sm:px-8 text-center">
-                    <RowActions actions={[{ icon: Edit, label: 'تعديل', onClick: () => onEdit(user.id) }]} />
+                    <RowActions actions={[
+                      { icon: Edit, label: 'تعديل', onClick: () => onEdit(user.id) },
+                      {
+                        icon: user.isDisabled ? ToggleLeft : ToggleRight,
+                        label: user.isDisabled ? 'تفعيل المستخدم' : 'تعطيل المستخدم',
+                        onClick: () => onToggleStatus(user.id),
+                        tone: user.isDisabled ? 'default' : 'danger',
+                      },
+                    ]} />
                   </td>
                 </tr>
               ))}
