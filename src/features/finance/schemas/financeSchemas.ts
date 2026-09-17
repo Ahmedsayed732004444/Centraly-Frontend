@@ -24,11 +24,12 @@ export const openSessionSchema = z.object({
 export type OpenSessionRequest = z.infer<typeof openSessionSchema>;
 
 export const addManualTransactionSchema = z.object({
-  type: z.number(),
-  category: z.number(),
-  amount: z.number().int().min(1, "المبلغ يجب أن يكون أكبر من 0"),
-  notes: z.string().trim().min(3, "لازم تكتب البيان أو السبب (3 أحرف على الأقل)"),
+  type: z.number().int(),
+  category: z.number().int(),
+  amount: z.number().int().min(1, 'يجب إدخال مبلغ صحيح'),
+  notes: z.string().min(3, 'البيان يجب أن يكون 3 أحرف على الأقل'),
   source: z.string().optional(),
+  drawerType: z.number().int().optional(),
 });
 export type AddManualTransactionRequest = z.infer<typeof addManualTransactionSchema>;
 

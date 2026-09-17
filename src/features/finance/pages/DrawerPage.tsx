@@ -155,6 +155,7 @@ function DrawerContent({ type }: { type: number }) {
         <ManualTransactionModal
           isOpen={isManualTxModalOpen}
           onClose={() => setIsManualTxModalOpen(false)}
+          drawerType={type}
         />
       )}
     </div>

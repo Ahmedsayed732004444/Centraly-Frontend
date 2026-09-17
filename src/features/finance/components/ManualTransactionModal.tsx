@@ -1,4 +1,4 @@
-﻿import { useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { BaseModal } from '@/shared/components/ui/BaseModal';
 import { addManualTransactionSchema, AddManualTransactionRequest } from '../schemas/financeSchemas';
@@ -7,8 +7,9 @@ import { tokens } from '@/shared/styles/tokens';
 interface ManualTransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
+  drawerType: number;
 }
-export function ManualTransactionModal({ isOpen, onClose }: ManualTransactionModalProps) {
+export function ManualTransactionModal({ isOpen, onClose, drawerType }: ManualTransactionModalProps) {
   const addTransaction = useAddDrawerTransaction();
   const {
     register,
@@ -25,6 +26,7 @@ export function ManualTransactionModal({ isOpen, onClose }: ManualTransactionMod
   const transactionType = watch('type');
   const onSubmit = (data: AddManualTransactionRequest) => {
     data.category = 6;
+    data.drawerType = drawerType;
     addTransaction.mutate(data, {
       onSuccess: () => {
         reset();
