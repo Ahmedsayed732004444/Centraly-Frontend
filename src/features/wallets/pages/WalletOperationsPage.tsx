@@ -46,11 +46,15 @@ export function WalletOperationsPage() {
   const physicalCashAmount = watch('physicalCashAmount') || 0;
 
   // profit = (Cash received by store) - (Cash sent to customer/wallet)
-  // For CashIn (Deposit): We take physicalCash, and we transfer money to wallet. Profit = physicalCash - transferred
-  // For CashOut (Withdrawal): We receive transfer, and we give physicalCash. Profit = transferred - physicalCash
-  const profit = operationType === WalletOperationType.CashIn 
-    ? Number(physicalCashAmount) - Number(transferredAmount)
-    : Number(transferredAmount) - Number(physicalCashAmount);
+  // For CashIn (Deposit) and Recharge (both take physicalCash in and send transferred
+  // out - WalletService.ProcessOperationAsync treats them identically): profit = physicalCash - transferred.
+  // For CashOut (Withdrawal): We receive transfer, and we give physicalCash. Profit = transferred - physicalCash.
+  // This used to route Recharge through the CashOut formula (falling into the ternary's
+  // else branch), showing the shop owner the opposite sign of the profit/loss the backend
+  // actually records for that same recharge.
+  const profit = operationType === WalletOperationType.CashOut
+    ? Number(transferredAmount) - Number(physicalCashAmount)
+    : Number(physicalCashAmount) - Number(transferredAmount);
 
   const openOperationModal = (wallet: WalletResponse, type: WalletOperationType) => {
     setSelectedWallet(wallet);
