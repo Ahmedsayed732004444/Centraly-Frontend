@@ -141,10 +141,11 @@ export function Sidebar() {
   };
 
   return (
-    <aside className={`${isOpen ? 'translate-x-0 w-64' : 'translate-x-full md:translate-x-0 md:w-20'} transition-all duration-300 bg-[#F1F5F9] text-slate-900 flex flex-col h-screen fixed right-0 top-0 border-l border-slate-200 flex-shrink-0 z-50 shadow-[rgba(0,0,0,0.04)_inset_0px_0px_0px,rgba(0,0,0,0.05)_-4px_0px_10px]`}>
+    <aside className={`${isOpen ? 'translate-x-0 w-64' : 'translate-x-full md:translate-x-0 md:w-20'} transition-all duration-300 bg-[#F1F5F9] text-slate-900 flex flex-col h-screen fixed right-0 top-0 border-l border-slate-200 flex-shrink-0 z-50 shadow-[rgba(0,0,0,0.04)_inset_0px_0px_0px,-6px_0_20px_-2px_rgba(15,23,42,0.12)]`}>
 
-      {/* Logo Area */}
-      <div className="h-20 flex items-center justify-between border-b border-slate-200 bg-[#F1F5F9] shrink-0 relative overflow-hidden px-4">
+      {/* Logo Area - h-16 to match AppLayout's own header height (h-16) exactly, so
+          the border between the two doesn't step down where they meet. */}
+      <div className="h-16 flex items-center justify-between border-b border-slate-200 bg-[#F1F5F9] shrink-0 relative overflow-hidden px-4">
         {isOpen ? (
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-3">
