@@ -47,9 +47,15 @@ export function useOpenDrawer() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: OpenSessionRequest) => financeRepository.openDrawerSession(data),
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       toast.success("تم التنفيذ بنجاح");
-      queryClient.invalidateQueries({ queryKey: FINANCE_KEYS.activeDrawer(variables.type || 1) });
+      // Was invalidating only ["drawer","active",variables.type||1] - if that ever
+      // drifted from the exact key useActiveDrawer(type) is querying with (e.g. a
+      // stale/undefined type on the request), the invalidation silently missed and the
+      // still-showing "open a shift" form only caught up on a full page reload. The
+      // ["drawer","active"] prefix (same pattern useAddDrawerTransaction already uses)
+      // matches both type 1 and 2 unconditionally, so there's no key to get wrong.
+      queryClient.invalidateQueries({ queryKey: ["drawer", "active"] });
     },
     onError: (err) => toast.error(getApiErrorMessage(err)),
   });
@@ -59,8 +65,8 @@ export function useCloseDrawer() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (type: number = 1) => financeRepository.closeDrawerSession(type),
-    onSuccess: (_, type) => {
-      queryClient.invalidateQueries({ queryKey: FINANCE_KEYS.activeDrawer(type) });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["drawer", "active"] });
       toast.success("تم التنفيذ بنجاح");
     },
     onError: (err) => { toast.error(getApiErrorMessage(err)); }
