@@ -296,7 +296,7 @@ export function WalletsAdminPage() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               نوع المحفظة (العمليات المتاحة) *
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {[
                 { type: WalletOperationType.CashIn, label: 'بيع', desc: 'إيداع رصيد للعميل' },
                 { type: WalletOperationType.CashOut, label: 'سحب', desc: 'سحب كاش من العميل' },
