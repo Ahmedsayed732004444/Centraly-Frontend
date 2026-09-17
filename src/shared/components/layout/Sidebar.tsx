@@ -160,7 +160,11 @@ export function Sidebar() {
               {/* Clicking the brand always returns home - the one universal "go back to
                   the start" affordance every screen shares, matching the pinned "الرئيسية"
                   link below. */}
-              <Link to="/" onClick={closeOnMobile} className="select-none">
+              <Link
+                to="/"
+                onClick={closeOnMobile}
+                className="select-none rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F1F5F9]"
+              >
                 <h1 className="text-2xl font-extrabold text-slate-800 tracking-wide hover:text-blue-700 transition-colors">
                   سنترالي
                 </h1>
