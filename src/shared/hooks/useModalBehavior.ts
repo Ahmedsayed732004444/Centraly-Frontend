@@ -10,6 +10,11 @@ export function useModalBehavior(
   containerRef: RefObject<HTMLElement | null>
 ) {
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useFocusTrap(containerRef, isOpen);
 
@@ -20,7 +25,7 @@ export function useModalBehavior(
     document.body.style.overflow = 'hidden';
 
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') onCloseRef.current();
     };
 
     window.addEventListener('keydown', onKeyDown);
@@ -29,5 +34,5 @@ export function useModalBehavior(
       document.body.style.overflow = '';
       previousFocusRef.current?.focus();
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 }
