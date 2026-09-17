@@ -12,7 +12,7 @@ export const maintenanceKeys = {
   detail: (id: string) => [...maintenanceKeys.details(), id] as const,
 };
 
-export function useMaintenanceList(filters?: MaintenanceFilters, options?: any) {
+export function useMaintenanceList(filters?: MaintenanceFilters, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: maintenanceKeys.list(filters),
     queryFn: () => maintenanceApi.getAll(filters),

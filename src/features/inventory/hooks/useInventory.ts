@@ -27,7 +27,7 @@ export function useDepartments(filters: ProductFilters = { pageNumber: 1, pageSi
   });
 }
 
-export function useProducts(filters: ProductFilters, options?: any) {
+export function useProducts(filters: ProductFilters, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: INVENTORY_KEYS.products(filters),
     queryFn: () => inventoryRepository.getProducts(filters),
