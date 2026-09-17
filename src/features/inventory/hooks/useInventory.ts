@@ -1,4 +1,4 @@
-﻿import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { inventoryRepository } from "../api/InventoryApi";
 import { ProductFilters, CreateProductRequest } from "../schemas/inventorySchemas";
 import { toast } from "sonner";
@@ -27,10 +27,11 @@ export function useDepartments(filters: ProductFilters = { pageNumber: 1, pageSi
   });
 }
 
-export function useProducts(filters: ProductFilters) {
+export function useProducts(filters: ProductFilters, options?: any) {
   return useQuery({
     queryKey: INVENTORY_KEYS.products(filters),
     queryFn: () => inventoryRepository.getProducts(filters),
+    ...options,
   });
 }
 
