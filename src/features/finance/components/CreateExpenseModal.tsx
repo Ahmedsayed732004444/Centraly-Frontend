@@ -6,6 +6,7 @@ import { useRecordExpense, useExpenseCategories, useCreateExpenseCategory } from
 import { usePaymentSourcePrompt } from '../hooks/usePaymentSourcePrompt';
 import { tokens } from '@/shared/styles/tokens';
 import { Plus } from 'lucide-react';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 interface CreateExpenseModalProps {
   isOpen: boolean;
@@ -13,6 +14,8 @@ interface CreateExpenseModalProps {
 }
 
 export function CreateExpenseModal({ isOpen, onClose }: CreateExpenseModalProps) {
+  const { hasAnyRole } = useAuth();
+  const canAddCategory = hasAnyRole(['Admin', 'Manager']);
   const recordExpense = useRecordExpense();
   const { data: categories } = useExpenseCategories();
   const createCategory = useCreateExpenseCategory();
@@ -63,15 +66,17 @@ export function CreateExpenseModal({ isOpen, onClose }: CreateExpenseModalProps)
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className={tokens.font.label}>بند المصروف</label>
-              <button 
-                type="button" 
-                onClick={handleAddCategory}
-                className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium bg-blue-50 px-2 py-1 rounded transition-colors disabled:opacity-50"
-                disabled={createCategory.isPending}
-              >
-                <Plus className="w-3 h-3" />
-                {createCategory.isPending ? 'جاري الإضافة...' : 'بند جديد'}
-              </button>
+              {canAddCategory && (
+                <button 
+                  type="button" 
+                  onClick={handleAddCategory}
+                  className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium bg-blue-50 px-2 py-1 rounded transition-colors disabled:opacity-50"
+                  disabled={createCategory.isPending}
+                >
+                  <Plus className="w-3 h-3" />
+                  {createCategory.isPending ? 'جاري الإضافة...' : 'بند جديد'}
+                </button>
+              )}
             </div>
             <select
               {...register('categoryId')}
