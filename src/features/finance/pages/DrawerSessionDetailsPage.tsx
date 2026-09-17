@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useDrawerSessionById } from '../hooks/useFinance';
+import { useDrawerSessionById, useSafes } from '../hooks/useFinance';
+import { useCreateOwnerTransaction } from '../hooks/useOwnerTransactions';
+import { usePaymentSourcePrompt } from '../hooks/usePaymentSourcePrompt';
 import { PageLoader } from '@/shared/components/ui/PageLoader';
 import { formatCurrency } from '@/shared/utils/currency';
 import { formatDate } from '@/shared/utils/date';
 import { DrawerTransactionsTable } from '../components/DrawerTransactionsTable';
 import { CloseDrawerModal } from '../components/CloseDrawerModal';
-import { CheckCircle, Clock, Download } from 'lucide-react';
+import { ReceiveDrawerDepositModal } from '../components/ReceiveDrawerDepositModal';
+import { OwnerTransactionForm } from '../components/OwnerTransactionForm';
+import { CheckCircle, Clock, Download, ArrowDownToLine, Wallet } from 'lucide-react';
 import { exportDrawerSessionToExcel } from '../utils/exportDrawerSessionExcel';
 import { tokens } from '@/shared/styles/tokens';
 import { useHeaderStore } from '@/shared/hooks/useHeaderStore';
@@ -17,7 +21,15 @@ export function DrawerSessionDetailsPage() {
   const { hasAnyRole } = useAuth();
   const canManageSession = hasAnyRole(['Admin', 'Manager']);
   const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
+  const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState<number | ''>('');
+  const [withdrawNotes, setWithdrawNotes] = useState('');
   const { data: session, isLoading, isError } = useDrawerSessionById(id!);
+  const { data: safes } = useSafes();
+  const mainSafe = safes?.find(s => s.isMain) || safes?.[0];
+  const { mutate: createOwnerTransaction, isPending: isWithdrawing } = useCreateOwnerTransaction();
+  const { promptPaymentSource, PaymentSourcePromptModal } = usePaymentSourcePrompt();
   const { setTitle, setBackButton } = useHeaderStore();
 
   useEffect(() => {
@@ -37,6 +49,18 @@ export function DrawerSessionDetailsPage() {
       </div>
     );
   }
+  const handleWithdrawSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!withdrawAmount || withdrawAmount <= 0) return;
+    const source = await promptPaymentSource(11); // GlobalTransactionCategory.OwnerWithdrawal
+    if (source) {
+      createOwnerTransaction(
+        { category: 11, amount: Number(withdrawAmount), notes: withdrawNotes, paymentSource: source },
+        { onSuccess: () => setIsWithdrawModalOpen(false) }
+      );
+    }
+  };
+
   return (
     <div className="space-y-6 w-full">
       {}
@@ -54,6 +78,31 @@ export function DrawerSessionDetailsPage() {
               >
                 <Download className="w-4 h-4" />
                 تصدير Excel
+              </button>
+            )}
+            {canManageSession && (
+              session.depositedToSafeAt ? (
+                <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <CheckCircle className="w-4 h-4" /> تم توريد الخزينة للدرج
+                </span>
+              ) : (
+                <button
+                  onClick={() => setIsDepositModalOpen(true)}
+                  disabled={!mainSafe}
+                  className={tokens.btn.secondary + " flex items-center gap-2 py-1.5 px-4 text-sm"}
+                >
+                  <ArrowDownToLine className="w-4 h-4" />
+                  استلام الخزينة للدرج
+                </button>
+              )
+            )}
+            {canManageSession && (
+              <button
+                onClick={() => { setWithdrawAmount(''); setWithdrawNotes(''); setIsWithdrawModalOpen(true); }}
+                className={tokens.btn.primary + " flex items-center gap-2 py-1.5 px-4 text-sm"}
+              >
+                <Wallet className="w-4 h-4" />
+                سحب مبلغ
               </button>
             )}
           </div>
@@ -86,6 +135,27 @@ export function DrawerSessionDetailsPage() {
         isOpen={isCloseModalOpen}
         onClose={() => setIsCloseModalOpen(false)}
         session={session}
+      />
+      {mainSafe && (
+        <ReceiveDrawerDepositModal
+          isOpen={isDepositModalOpen}
+          onClose={() => setIsDepositModalOpen(false)}
+          safeId={mainSafe.id}
+          defaultDrawerSessionId={session.id}
+          defaultAmount={session.closingBalance || 0}
+        />
+      )}
+      <PaymentSourcePromptModal />
+      <OwnerTransactionForm
+        isOpen={isWithdrawModalOpen}
+        onClose={() => setIsWithdrawModalOpen(false)}
+        title="سحب مبلغ للمالك"
+        amount={withdrawAmount}
+        onAmountChange={setWithdrawAmount}
+        notes={withdrawNotes}
+        onNotesChange={setWithdrawNotes}
+        onSubmit={handleWithdrawSubmit}
+        isSubmitting={isWithdrawing}
       />
       {}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

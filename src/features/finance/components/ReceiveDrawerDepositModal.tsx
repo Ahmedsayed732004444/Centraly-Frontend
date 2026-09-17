@@ -8,9 +8,12 @@ interface ReceiveDrawerDepositModalProps {
   isOpen: boolean;
   onClose: () => void;
   safeId: string;
+  defaultDrawerSessionId?: string;
+  defaultAmount?: number;
 }
-export function ReceiveDrawerDepositModal({ isOpen, onClose, safeId }: ReceiveDrawerDepositModalProps) {
+export function ReceiveDrawerDepositModal({ isOpen, onClose, safeId, defaultDrawerSessionId, defaultAmount }: ReceiveDrawerDepositModalProps) {
   const receiveDeposit = useDepositFromDrawer();
+  const isPrefilled = !!defaultDrawerSessionId;
   const {
     register,
     handleSubmit,
@@ -19,7 +22,7 @@ export function ReceiveDrawerDepositModal({ isOpen, onClose, safeId }: ReceiveDr
   } = useForm<ReceiveDrawerDepositRequest>({
     resolver: zodResolver(receiveDrawerDepositSchema),
     mode: 'onBlur',
-    defaultValues: { drawerSessionId: '', amount: 0, notes: '' }
+    defaultValues: { drawerSessionId: defaultDrawerSessionId || '', amount: defaultAmount || 0, notes: '' }
   });
   const onSubmit = (data: ReceiveDrawerDepositRequest) => {
     receiveDeposit.mutate({ safeId, data }, {
@@ -32,16 +35,20 @@ export function ReceiveDrawerDepositModal({ isOpen, onClose, safeId }: ReceiveDr
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} title="إيداع من الكاشير">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <label className={tokens.font.label + " block mb-1.5"}>رقم وردية الكاشير</label>
-          <input
-            type="text"
-            {...register('drawerSessionId')}
-            className={tokens.input}
-            placeholder="أدخل رقم الوردية..."
-          />
-          {errors.drawerSessionId && <p className="text-red-500 text-xs mt-1">{String(errors.drawerSessionId.message)}</p>}
-        </div>
+        {isPrefilled ? (
+          <input type="hidden" {...register('drawerSessionId')} />
+        ) : (
+          <div>
+            <label className={tokens.font.label + " block mb-1.5"}>رقم وردية الكاشير</label>
+            <input
+              type="text"
+              {...register('drawerSessionId')}
+              className={tokens.input}
+              placeholder="أدخل رقم الوردية..."
+            />
+            {errors.drawerSessionId && <p className="text-red-500 text-xs mt-1">{String(errors.drawerSessionId.message)}</p>}
+          </div>
+        )}
         <div>
           <label className={tokens.font.label + " block mb-1.5"}>المبلغ (ج.م)</label>
           <input

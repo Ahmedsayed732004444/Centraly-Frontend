@@ -57,6 +57,7 @@ export interface DrawerSessionResponse {
   totalExpense?: number;
   closingBalance?: number;
   totalProfit?: number;
+  depositedToSafeAt?: string;
   transactions: DrawerTransactionResponse[];
 }
 

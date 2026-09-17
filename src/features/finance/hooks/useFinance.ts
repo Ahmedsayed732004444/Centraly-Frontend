@@ -115,6 +115,7 @@ export function useDepositFromDrawer() {
       toast.success("تم التنفيذ بنجاح");
       queryClient.invalidateQueries({ queryKey: FINANCE_KEYS.safes });
       queryClient.invalidateQueries({ queryKey: ["drawer", "active"] });
+      queryClient.invalidateQueries({ queryKey: ["drawer", "history"] });
     },
     onError: (err) => toast.error(getApiErrorMessage(err)),
   });
