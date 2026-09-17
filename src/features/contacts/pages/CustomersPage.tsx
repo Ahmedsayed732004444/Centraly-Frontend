@@ -13,9 +13,12 @@ import { exportToExcel } from '@/shared/utils/exportToExcel';
 import { fetchAllPages } from '@/shared/utils/fetchAllPages';
 import { contactsRepository } from '../api/ContactsApi';
 import { formatDateOnly } from '@/shared/utils/date';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export function CustomersPage() {
   const navigate = useNavigate();
+  const { hasAnyRole } = useAuth();
+  const canExport = hasAnyRole(['Admin', 'Manager']);
   const [pageIndex, setPageIndex] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -81,7 +84,7 @@ export function CustomersPage() {
         }}
       />
 
-      <div className="flex justify-end">
+      {canExport && <div className="flex justify-end">
         <ExportExcelButton
           onExport={async () => {
             const rows = await fetchAllPages<CustomerResponse>((pageNumber) =>
@@ -102,7 +105,7 @@ export function CustomersPage() {
             });
           }}
         />
-      </div>
+      </div>}
 
       <CustomersTable
         data={data} 

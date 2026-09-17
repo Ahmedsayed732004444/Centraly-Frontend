@@ -10,9 +10,12 @@ import { CheckCircle, Clock, Download } from 'lucide-react';
 import { exportDrawerSessionToExcel } from '../utils/exportDrawerSessionExcel';
 import { tokens } from '@/shared/styles/tokens';
 import { useHeaderStore } from '@/shared/hooks/useHeaderStore';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 export function DrawerSessionDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { hasAnyRole } = useAuth();
+  const canManageSession = hasAnyRole(['Admin', 'Manager']);
   const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
   const { data: session, isLoading, isError } = useDrawerSessionById(id!);
   const { setTitle, setBackButton } = useHeaderStore();
@@ -44,32 +47,38 @@ export function DrawerSessionDetailsPage() {
             <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 border border-gray-200">
               <CheckCircle className="w-4 h-4" /> وردية مغلقة
             </span>
-            <button
-              onClick={() => exportDrawerSessionToExcel(session)}
-              className={tokens.btn.secondary + " flex items-center gap-2 py-1.5 px-4 text-sm"}
-            >
-              <Download className="w-4 h-4" />
-              تصدير Excel
-            </button>
+            {canManageSession && (
+              <button
+                onClick={() => exportDrawerSessionToExcel(session)}
+                className={tokens.btn.secondary + " flex items-center gap-2 py-1.5 px-4 text-sm"}
+              >
+                <Download className="w-4 h-4" />
+                تصدير Excel
+              </button>
+            )}
           </div>
         ) : (
           <div className="flex flex-wrap items-center gap-3">
             <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-green-50 text-green-700 border border-green-200">
               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> وردية جارية الآن
             </span>
-            <button
-              onClick={() => exportDrawerSessionToExcel(session)}
-              className={tokens.btn.secondary + " flex items-center gap-2 py-1.5 px-4 text-sm"}
-            >
-              <Download className="w-4 h-4" />
-              تصدير Excel
-            </button>
-            <button
-              onClick={() => setIsCloseModalOpen(true)}
-              className={tokens.btn.primary + " bg-red-600 hover:bg-red-700 ring-red-500 py-1.5 px-4 text-sm"}
-            >
-              إغلاق الوردية
-            </button>
+            {canManageSession && (
+              <button
+                onClick={() => exportDrawerSessionToExcel(session)}
+                className={tokens.btn.secondary + " flex items-center gap-2 py-1.5 px-4 text-sm"}
+              >
+                <Download className="w-4 h-4" />
+                تصدير Excel
+              </button>
+            )}
+            {canManageSession && (
+              <button
+                onClick={() => setIsCloseModalOpen(true)}
+                className={tokens.btn.primary + " bg-red-600 hover:bg-red-700 ring-red-500 py-1.5 px-4 text-sm"}
+              >
+                إغلاق الوردية
+              </button>
+            )}
           </div>
         )}
       </div>

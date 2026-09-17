@@ -15,7 +15,10 @@ import { fetchAllPages } from '@/shared/utils/fetchAllPages';
 import { maintenanceApi } from '../api/MaintenanceApi';
 import { MaintenanceSummary } from '../schemas/maintenanceSchemas';
 import { formatDateTime } from '@/shared/utils/date';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 export function MaintenancePage() {
+  const { hasAnyRole } = useAuth();
+  const canExport = hasAnyRole(['Admin', 'Manager']);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [searchValue, setSearchValue] = useState<string>('');
   const debouncedSearch = useDebounce(searchValue, 500);
@@ -66,7 +69,7 @@ export function MaintenancePage() {
           <span className="text-sm font-medium whitespace-nowrap">{totalCount} تذكرة صيانة</span>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <ExportExcelButton
+          {canExport && <ExportExcelButton
             onExport={async () => {
               const rows = await fetchAllPages<MaintenanceSummary>((pageNumber) =>
                 maintenanceApi.getAll({ pageNumber, pageSize: 50, status: statusFilter || undefined, searchValue: debouncedSearch || undefined })
@@ -90,7 +93,7 @@ export function MaintenancePage() {
                 rows,
               });
             }}
-          />
+          />}
           <button
             onClick={() => setIsCreateOpen(true)}
             className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors w-full sm:w-auto shrink-0"

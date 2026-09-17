@@ -44,6 +44,8 @@ export function DrawerPage() {
   );
 }
 function DrawerContent({ type }: { type: number }) {
+  const { hasAnyRole } = useAuth();
+  const canManageSession = hasAnyRole(['Admin', 'Manager']);
   const { data: session, isLoading } = useActiveDrawer(type);
   const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
   const [isManualTxModalOpen, setIsManualTxModalOpen] = useState(false);
@@ -78,19 +80,23 @@ function DrawerContent({ type }: { type: number }) {
             <History className="w-5 h-5 shrink-0" />
             <span>تصفح السجل</span>
           </Link>
-          <button
-            onClick={handleExport}
-            className={tokens.btn.secondary + " flex items-center justify-center gap-2 flex-1 sm:flex-none"}
-          >
-            <Download className="w-5 h-5 shrink-0" />
-            <span>تصدير Excel</span>
-          </button>
-          <button
-            onClick={() => setIsCloseModalOpen(true)}
-            className={tokens.btn.primary + " bg-red-600 hover:bg-red-700 ring-red-500 flex-1 sm:flex-none"}
-          >
-            إغلاق الوردية
-          </button>
+          {canManageSession && (
+            <button
+              onClick={handleExport}
+              className={tokens.btn.secondary + " flex items-center justify-center gap-2 flex-1 sm:flex-none"}
+            >
+              <Download className="w-5 h-5 shrink-0" />
+              <span>تصدير Excel</span>
+            </button>
+          )}
+          {canManageSession && (
+            <button
+              onClick={() => setIsCloseModalOpen(true)}
+              className={tokens.btn.primary + " bg-red-600 hover:bg-red-700 ring-red-500 flex-1 sm:flex-none"}
+            >
+              إغلاق الوردية
+            </button>
+          )}
         </div>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">

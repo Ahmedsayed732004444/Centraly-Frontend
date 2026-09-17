@@ -9,8 +9,11 @@ import { exportToExcel } from '@/shared/utils/exportToExcel';
 import { normalizePaginated } from '@/shared/utils/fetchAllPages';
 import { ExpenseResponse } from '../schemas/financeSchemas';
 import { formatDateTime } from '@/shared/utils/date';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export function ExpensesPage() {
+  const { hasAnyRole } = useAuth();
+  const canExport = hasAnyRole(['Admin', 'Manager']);
   const { data: expensesData, isLoading } = useExpenses({ pageNumber: 1, pageSize: 50 });
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -25,7 +28,7 @@ export function ExpensesPage() {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-gray-800">سجل المصروفات</h3>
-          <ExportExcelButton
+          {canExport && <ExportExcelButton
             onExport={async () => {
               const rows = normalizePaginated(expensesData || []).items;
               await exportToExcel<ExpenseResponse>({
@@ -42,7 +45,7 @@ export function ExpensesPage() {
                 rows,
               });
             }}
-          />
+          />}
         </div>
         <ExpensesTable expenses={expensesData || []} />
       </div>

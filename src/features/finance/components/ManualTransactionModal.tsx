@@ -69,13 +69,14 @@ export function ManualTransactionModal({ isOpen, onClose }: ManualTransactionMod
           {errors.amount && <p className="text-red-500 text-xs mt-1">{String(errors.amount.message)}</p>}
         </div>
         <div>
-          <label className={tokens.font.label + " block mb-1.5"}>البيان / السبب</label>
+          <label className={tokens.font.label + " block mb-1.5"}>البيان / السبب *</label>
           <input
             type="text"
             {...register('notes')}
             className={tokens.input}
             placeholder="مثال: فكة إضافية، شراء شاي..."
           />
+          {errors.notes && <p className="text-red-500 text-xs mt-1">{String(errors.notes.message)}</p>}
         </div>
         <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-4 mt-2">
           <button type="button" onClick={onClose} className={tokens.btn.ghost + " w-full sm:w-auto"}>

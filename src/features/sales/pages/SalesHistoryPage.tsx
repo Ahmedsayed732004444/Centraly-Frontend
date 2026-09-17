@@ -14,8 +14,11 @@ import { ExportExcelButton } from '@/shared/components/ui/ExportExcelButton';
 import { exportToExcel } from '@/shared/utils/exportToExcel';
 import { fetchAllPages } from '@/shared/utils/fetchAllPages';
 import { SalesInvoiceResponse, SaleType, PaymentMethod } from '../schemas/salesSchemas';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export function SalesHistoryPage() {
+  const { hasAnyRole } = useAuth();
+  const canExport = hasAnyRole(['Admin', 'Manager']);
   const [pageIndex, setPageIndex] = useState(1);
   const pageSize = 10;
   const [searchValue, setSearchValue] = useState('');
@@ -67,7 +70,7 @@ export function SalesHistoryPage() {
         paymentMethod={paymentMethod}
         onPaymentMethodChange={setPaymentMethod}
       />
-      <div className="flex justify-end">
+      {canExport && <div className="flex justify-end">
         <ExportExcelButton
           onExport={async () => {
             const rows = await fetchAllPages<SalesInvoiceResponse>((pageNumber) =>
@@ -100,7 +103,7 @@ export function SalesHistoryPage() {
             });
           }}
         />
-      </div>
+      </div>}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="p-3 sm:p-5 overflow-x-auto">
           <DataTable

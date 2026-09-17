@@ -17,8 +17,11 @@ import { ExportExcelButton } from '@/shared/components/ui/ExportExcelButton';
 import { exportToExcel } from '@/shared/utils/exportToExcel';
 import { CustomerStatementResponse } from '../schemas/contactSchemas';
 import { formatDateTime } from '@/shared/utils/date';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 export function CustomerDetailsPage() {
   const { id } = useParams<{ id: string }>();
+  const { hasAnyRole } = useAuth();
+  const canExport = hasAnyRole(['Admin', 'Manager']);
   const { setTitle, setBackButton } = useHeaderStore();
   const [pageIndex, setPageIndex] = useState(1);
   const [isPaymentDrawerOpen, setIsPaymentDrawerOpen] = useState(false);
@@ -109,7 +112,7 @@ export function CustomerDetailsPage() {
               <option value="مرتجع">مرتجع مبيعات</option>
               <option value="سداد مديونية">سداد مديونية</option>
             </select>
-            <ExportExcelButton
+            {canExport && <ExportExcelButton
               onExport={async () => {
                 await exportToExcel<CustomerStatementResponse>({
                   fileName: `كشف-حساب-${customer.name}`,
@@ -126,7 +129,7 @@ export function CustomerDetailsPage() {
                   rows: statementArray,
                 });
               }}
-            />
+            />}
           </div>
         </div>
         <div className="p-3 sm:p-5">

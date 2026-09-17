@@ -44,6 +44,7 @@ export function DrawerHistoryPage() {
         onTypeChange={(type) => setFilters(prev => ({ ...prev, type, pageNumber: 1 }))}
       />
 
+      {canSeeBoth && (
       <div className="flex justify-end">
         <ExportExcelButton
           onExport={async () => {
@@ -69,6 +70,7 @@ export function DrawerHistoryPage() {
           }}
         />
       </div>
+      )}
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <DataTable

@@ -12,7 +12,10 @@ import { exportToExcel } from '@/shared/utils/exportToExcel';
 import { fetchAllPages } from '@/shared/utils/fetchAllPages';
 import { salesRepository } from '../api/salesApi';
 import { SalesReturnResponse } from '../schemas/salesSchemas';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 export const SalesReturnsPage = () => {
+  const { hasAnyRole } = useAuth();
+  const canExport = hasAnyRole(['Admin', 'Manager']);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [dateFilter, setDateFilter] = useState('');
@@ -45,7 +48,7 @@ export const SalesReturnsPage = () => {
           dateFilter={dateFilter}
           onDateChange={setDateFilter}
         />
-        <div className="flex justify-end mb-3">
+        {canExport && <div className="flex justify-end mb-3">
           <ExportExcelButton
             onExport={async () => {
               const rows = await fetchAllPages<SalesReturnResponse>((pageNumber) =>
@@ -72,7 +75,7 @@ export const SalesReturnsPage = () => {
               });
             }}
           />
-        </div>
+        </div>}
         <div className="overflow-x-auto">
         <DataTable
           data={filteredData}

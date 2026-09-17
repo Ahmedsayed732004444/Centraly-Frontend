@@ -27,7 +27,7 @@ export const addManualTransactionSchema = z.object({
   type: z.number(),
   category: z.number(),
   amount: z.number().int().min(1, "المبلغ يجب أن يكون أكبر من 0"),
-  notes: z.string().optional(),
+  notes: z.string().trim().min(3, "لازم تكتب البيان أو السبب (3 أحرف على الأقل)"),
   source: z.string().optional(),
 });
 export type AddManualTransactionRequest = z.infer<typeof addManualTransactionSchema>;
