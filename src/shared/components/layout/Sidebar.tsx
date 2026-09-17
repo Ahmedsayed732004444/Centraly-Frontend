@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import {
   MonitorSmartphone, ShoppingCart, Wrench, Package,
   Users, Wallet, Settings, LogOut, ShoppingBag,
-  ChevronDown, ChevronUp, Menu, Zap, X, BarChart3, Home
+  ChevronDown, ChevronUp, Menu, Zap, X, BarChart3, Home, DatabaseBackup
 } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useSidebarStore } from "@/shared/hooks/useSidebarStore";
@@ -301,6 +301,25 @@ export function Sidebar() {
               <Wallet size={22} strokeWidth={location.pathname === "/settings/wallets" ? 2.5 : 2} className={`${location.pathname === "/settings/wallets" ? "text-blue-600" : "text-slate-500"} shrink-0`} />
               <span className={`${isOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0 hidden'} transition-all duration-300 whitespace-nowrap`}>
                 إدارة المحافظ
+              </span>
+            </Link>
+            )}
+
+            {/* Admin-only, not Manager: this downloads a full copy of every user's data,
+                a materially bigger blast radius than the other settings links above. */}
+            {hasAnyRole(["Admin"]) && (
+            <Link
+              to="/settings/backup"
+              onClick={closeOnMobile}
+              onMouseEnter={() => prefetchRoute("/settings/backup")}
+              onFocus={() => prefetchRoute("/settings/backup")}
+              onTouchStart={() => prefetchRoute("/settings/backup")}
+              title={!isOpen ? "النسخ الاحتياطي" : undefined}
+              className={`${isOpen ? 'gap-3 px-3.5' : 'justify-center px-0'} flex items-center py-3 rounded-xl transition-all duration-200 text-[15px] font-semibold relative ${location.pathname === "/settings/backup" ? "bg-white text-blue-700 shadow-sm border border-slate-200/60" : "text-slate-600 hover:bg-slate-200/50 hover:text-slate-900 border border-transparent"}`}
+            >
+              <DatabaseBackup size={22} strokeWidth={location.pathname === "/settings/backup" ? 2.5 : 2} className={`${location.pathname === "/settings/backup" ? "text-blue-600" : "text-slate-500"} shrink-0`} />
+              <span className={`${isOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0 hidden'} transition-all duration-300 whitespace-nowrap`}>
+                النسخ الاحتياطي
               </span>
             </Link>
             )}

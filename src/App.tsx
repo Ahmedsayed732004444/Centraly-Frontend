@@ -45,6 +45,7 @@ const AnalyticsPage = lazy(routeImporters.analytics);
 
 const UsersPage = lazy(routeImporters.users);
 const RolesPage = lazy(routeImporters.roles);
+const BackupPage = lazy(routeImporters.backup);
 
 // Guard: redirects to /login if not authenticated, and checks role access.
 // requiredPermissions actually holds ROLE NAMES (e.g. ["Admin","Manager","Salesperson"]),
@@ -161,6 +162,7 @@ export default function App() {
                 <Route path="/settings" element={<ComingSoon label="الإعدادات" />} />
                 <Route path="/settings/finance-policies" element={<ProtectedRoute requiredPermissions={["Admin", "Manager"]}><FinancePoliciesPage /></ProtectedRoute>} />
                 <Route path="/settings/wallets" element={<ProtectedRoute requiredPermissions={["Admin", "Manager"]}><WalletsAdminPage /></ProtectedRoute>} />
+                <Route path="/settings/backup" element={<ProtectedRoute requiredPermissions={["Admin"]}><BackupPage /></ProtectedRoute>} />
                 <Route path="/wallets/:id" element={<ProtectedRoute requiredPermissions={["Admin", "Manager", "Salesperson"]}><WalletDetailsPage /></ProtectedRoute>} />
               </Route>
 

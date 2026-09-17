@@ -47,6 +47,7 @@ export const routeImporters = {
 
   users: () => import("@/features/admin/pages/UsersPage").then((m) => ({ default: m.UsersPage })),
   roles: () => import("@/features/admin/pages/RolesPage").then((m) => ({ default: m.RolesPage })),
+  backup: () => import("@/features/admin/pages/BackupPage").then((m) => ({ default: m.BackupPage })),
 } as const;
 
 // Maps a route's URL path to its importer, for prefetch-on-hover in the Sidebar. Only
@@ -76,4 +77,5 @@ export const pathImporters: Record<string, () => Promise<unknown>> = {
   "/admin/users": routeImporters.users,
   "/admin/roles": routeImporters.roles,
   "/settings/wallets": routeImporters.walletsAdmin,
+  "/settings/backup": routeImporters.backup,
 };

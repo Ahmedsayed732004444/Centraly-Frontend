@@ -35,6 +35,7 @@ const defaultPageTitles: Record<string, string> = {
   "/settings": "الإعدادات",
   "/settings/finance-policies": "سياسات النظام",
   "/settings/wallets": "إدارة المحافظ",
+  "/settings/backup": "النسخ الاحتياطي",
 };
 
 // Exact match first, then longest-prefix match so a sub-route that isn't listed
