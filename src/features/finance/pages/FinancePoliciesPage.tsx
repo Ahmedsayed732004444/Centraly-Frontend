@@ -28,6 +28,9 @@ export function FinancePoliciesPage() {
     OwnerWithdrawal: 'مسحوبات الأرباح للمالك',
     ManualIncome: 'إيراد يدوي عام (الدرج / الخزينة > إضافة إيراد)',
     ManualExpense: 'مصروف يدوي عام (الدرج / الخزينة > إضافة مصروف)',
+    WalletOperation: 'عمليات المحافظ (إيداع/سحب محفظة إلكترونية)',
+    MaintenanceIncome: 'إيراد الصيانة (تحصيل قيمة تذكرة صيانة)',
+    MaintenanceExpense: 'مصروف الصيانة (شراء قطع غيار لتذكرة صيانة)',
   };
   const categoryDescriptions: Record<string, string> = {
     CashSale: 'عمليات البيع المباشر للزبائن كاش. مثال: عميل يشتري بضاعة بـ 100 ج.م ويدفع نقداً في نقطة البيع.',
@@ -43,6 +46,9 @@ export function FinancePoliciesPage() {
     OwnerWithdrawal: 'قيام صاحب العمل بسحب أموال لصالحه. مثال: المالك يسحب 1000 ج.م من الخزينة كمصروف شخصي.',
     ManualIncome: 'إضافة إيراد ندي ليس له تصنيف في النظام. مثال: تسجيل إيراد استثنائي من الدرج.',
     ManualExpense: 'سحب مصروف سريع ليس له تصنيف في فئات المصروفات المحددة.',
+    WalletOperation: 'إيداع أو سحب من محفظة إلكترونية مرتبطة بالنظام.',
+    MaintenanceIncome: 'تحصيل قيمة تذكرة صيانة من عميل. مثال: عميل دفع 150 ج.م أجرة إصلاح جهاز.',
+    MaintenanceExpense: 'شراء قطعة غيار أو دفع تكلفة لإتمام تذكرة صيانة.',
   };
   const categoryEnumMap: Record<string, GlobalTransactionCategory> = {
     CashSale: 1,
@@ -58,6 +64,9 @@ export function FinancePoliciesPage() {
     OwnerWithdrawal: 11,
     ManualIncome: 12,
     ManualExpense: 13,
+    WalletOperation: 14,
+    MaintenanceIncome: 15,
+    MaintenanceExpense: 16,
   };
   const handlePolicyChange = (categoryString: string, newPolicyString: string) => {
     const enumValue = categoryEnumMap[categoryString];

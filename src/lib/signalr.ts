@@ -1,7 +1,6 @@
 import * as signalR from "@microsoft/signalr";
 import { storage } from "@/lib/storage";
-
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "https://localhost:7073";
+import { API_BASE_URL as BASE_URL } from "@/lib/apiBaseUrl";
 // The backend maps the hub at "/hubs/notifications" off the API host root (see
 // Program.cs) - not under whatever base path VITE_API_BASE_URL happens to include.
 const HUB_URL = `${BASE_URL.replace(/\/api\/?$/, "")}/hubs/notifications`;

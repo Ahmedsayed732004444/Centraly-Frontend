@@ -1,9 +1,7 @@
 import axios from 'axios';
 import { storage } from '@/lib/storage';
 import { toast } from 'sonner';
-
-const envUrl = import.meta.env.VITE_API_BASE_URL;
-const BASE_URL = (envUrl && envUrl.trim() !== '' && envUrl !== '/') ? envUrl : 'https://centrallly.runasp.net';
+import { API_BASE_URL as BASE_URL } from '@/lib/apiBaseUrl';
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,

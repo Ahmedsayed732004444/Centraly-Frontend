@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'https://localhost:7073';
+import { API_BASE_URL } from '@/lib/apiBaseUrl';
 
 /**
  * Turns a backend-relative image path into an absolute URL. Was duplicated as

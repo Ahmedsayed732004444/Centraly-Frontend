@@ -12,7 +12,7 @@ export type DrawerTransactionType = 1 | 2; // Income = 1, Expense = 2
 export type DrawerTransactionCategory = 1 | 2 | 3 | 4 | 5; 
 export type PaymentSource = 1 | 2; // Drawer = 1, Safe = 2
 
-export type GlobalTransactionCategory = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13;
+export type GlobalTransactionCategory = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16;
 export type PaymentSourcePolicy = 1 | 2 | 3; // DrawerOnly = 1, SafeOnly = 2, Either = 3
 
 // --- Drawer ---
