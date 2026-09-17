@@ -1,0 +1,62 @@
+{
+  "output": {
+    "filePath": "ai-context.md",
+    "style": "markdown",
+    "removeEmptyLines": true,
+    "removeComments": true,
+    "showLineNumbers": false,
+    "topFilesFirst": true,
+    "directoryStructure": true
+  },
+  "include": [
+    "src/**/*",
+    "package.json",
+    "vite.config.ts",
+    "tsconfig*.json",
+    "index.html",
+    "components.json"
+  ],
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": [
+      "package-lock.json",
+      "pnpm-lock.yaml",
+      "yarn.lock",
+      "bun.lockb",
+      "*.lock",
+      "ai-context.md",
+      "repomix-output.*",
+      "tree.txt",
+      "verify-rebuild.sh",
+      "public/**",
+      "dist/**",
+      "build/**",
+      "coverage/**",
+      ".husky/**",
+      ".vscode/**",
+      ".idea/**",
+      "*.log",
+      "**/*.min.js",
+      "**/*.min.css",
+      "**/*.map",
+      "**/*.svg",
+      "**/*.png",
+      "**/*.jpg",
+      "**/*.jpeg",
+      "**/*.gif",
+      "**/*.webp",
+      "**/*.ico",
+      "**/*.avif",
+      "**/*.mp4",
+      "**/*.webm",
+      "**/*.mp3",
+      "**/*.pdf",
+      "**/*.woff",
+      "**/*.woff2",
+      "**/*.ttf",
+      "**/*.eot",
+      "**/__snapshots__/**"
+    ]
+  }
+}

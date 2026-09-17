@@ -1,0 +1,25 @@
+﻿export const Permissions = {
+  InventoryRead: 'inventory:read',
+  InventoryWrite: 'inventory:write',
+  MaintenanceRead: 'maintenance:read',
+  MaintenanceWrite: 'maintenance:write',
+  SalesRead: 'sales:read',
+  SalesWrite: 'sales:write',
+  PurchasesRead: 'purchases:read',
+  PurchasesWrite: 'purchases:write',
+  SuppliersRead: 'suppliers:read',
+  SuppliersWrite: 'suppliers:write',
+  CustomersRead: 'customers:read',
+  CustomersWrite: 'customers:write',
+  FinanceRead: 'finance:read',
+  FinanceWrite: 'finance:write',
+  WalletsRead: 'wallets:read',
+  WalletsWrite: 'wallets:write',
+  UsersRead: 'users:read',
+  UsersWrite: 'users:write',
+  RolesRead: 'roles:read',
+  RolesWrite: 'roles:write',
+  Admin: 'admin',
+} as const;
+
+export type Permission = (typeof Permissions)[keyof typeof Permissions];

@@ -1,0 +1,16 @@
+# AI Context & Instructions for Centraly Frontend
+
+You are an expert React TypeScript developer working on the Centraly Frontend project.
+Always enforce the architectural rules laid out in `docs/ARCHITECTURE.md` and `docs/AI_GUIDELINES.md`.
+
+## Critical Directives
+1. **Never use `any`**. Use `unknown` or write proper TS interfaces.
+2. **Strict Structure**: Features live in `src/features/[name]/{api,components,hooks,pages,schemas}`. Never mix domain logic into `shared/`.
+3. **Styling**: Always use CSS variables mapped via `src/shared/styles/tokens.ts`. No hardcoded hex values or raw tailwind colors (like `text-blue-500`) unless explicitly mapped in `tokens.ts`.
+4. **Data Fetching**: ONLY use `TanStack Query` (React Query) in custom hooks. Never fetch directly in components.
+5. **Forms**: Use `react-hook-form` + `zod`. Keep validation schemas strictly in `src/features/*/schemas/`.
+6. **Error Handling**: Do not let errors crash the app. Assume `FeatureErrorBoundary` is wrapping your page. Use `sonner` for toast notifications.
+
+Before writing code, analyze existing shared components (e.g., `Button`, `RightDrawer`, `BaseModal`, `PickerModal`, `DataTable`, `Spinner`) and re-use them instead of building from scratch.
+
+Any overlay/dialog MUST use `BaseModal` or `RightDrawer` so a11y (role, aria-modal, focus trap, Escape) is guaranteed.
