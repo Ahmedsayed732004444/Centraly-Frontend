@@ -305,9 +305,7 @@ export function Sidebar() {
             </Link>
             )}
 
-            {/* Admin-only, not Manager: this downloads a full copy of every user's data,
-                a materially bigger blast radius than the other settings links above. */}
-            {hasAnyRole(["Admin"]) && (
+            {hasAnyRole(ADMIN_MANAGER) && (
             <Link
               to="/settings/backup"
               onClick={closeOnMobile}
