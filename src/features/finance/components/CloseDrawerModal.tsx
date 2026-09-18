@@ -4,6 +4,7 @@ import { useCloseDrawer } from '../hooks/useFinance';
 import { formatCurrency } from '@/shared/utils/currency';
 import { tokens } from '@/shared/styles/tokens';
 import { AlertTriangle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 interface CloseDrawerModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -11,10 +12,12 @@ interface CloseDrawerModalProps {
 }
 export function CloseDrawerModal({ isOpen, onClose, session }: CloseDrawerModalProps) {
   const closeDrawer = useCloseDrawer();
+  const navigate = useNavigate();
   const handleClose = () => {
     closeDrawer.mutate(session.type, {
       onSuccess: () => {
         onClose();
+        navigate(`/finance/drawer/history/${session.id}`);
       }
     });
   };
