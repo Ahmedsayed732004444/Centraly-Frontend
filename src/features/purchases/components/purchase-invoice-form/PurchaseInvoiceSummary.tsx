@@ -21,19 +21,7 @@ export function PurchaseInvoiceSummary({ isSubmitting }: PurchaseInvoiceSummaryP
   return (
     <div className={`${tokens.card} p-6 bg-white`}>
       <div className="flex flex-col md:flex-row gap-6 justify-between items-start">
-        <div className="w-full md:w-1/2 space-y-4">
-          <div>
-            <label className={`${tokens.font.label} mb-2 block`}>ملاحظات الفاتورة</label>
-            <textarea
-              {...register('notes')}
-              rows={5}
-              className={tokens.input}
-              placeholder="أي ملاحظات إضافية على الفاتورة..."
-            />
-          </div>
-        </div>
-
-        <div className="w-full md:w-1/3 bg-gray-50 p-6 rounded-xl border border-[var(--color-border)] flex flex-col gap-4">
+        <div className="w-full md:w-1/2 bg-gray-50 p-6 rounded-xl border border-[var(--color-border)] flex flex-col gap-4">
           <div className="flex justify-between items-center text-lg">
             <span className="text-[var(--color-text-muted)]">إجمالي الفاتورة:</span>
             <span className="font-bold text-[var(--color-text-main)]">
@@ -70,6 +58,18 @@ export function PurchaseInvoiceSummary({ isSubmitting }: PurchaseInvoiceSummaryP
           >
             {isSubmitting ? 'جاري الحفظ...' : 'حفظ الفاتورة'}
           </button>
+        </div>
+
+        <div className="w-full md:w-1/2 space-y-4">
+          <div>
+            <label className={`${tokens.font.label} mb-2 block`}>ملاحظات الفاتورة</label>
+            <textarea
+              {...register('notes')}
+              rows={5}
+              className={tokens.input}
+              placeholder="أي ملاحظات إضافية على الفاتورة..."
+            />
+          </div>
         </div>
       </div>
     </div>
