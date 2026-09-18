@@ -67,6 +67,7 @@ export function useCloseDrawer() {
     mutationFn: (type: number = 1) => financeRepository.closeDrawerSession(type),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["drawer", "active"] });
+      queryClient.invalidateQueries({ queryKey: ["drawer", "history"] });
       toast.success("تم التنفيذ بنجاح");
     },
     onError: (err) => { toast.error(getApiErrorMessage(err)); }
