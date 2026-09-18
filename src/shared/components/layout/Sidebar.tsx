@@ -112,7 +112,7 @@ const menuGroups: MenuGroup[] = [
     allowedRoles: ADMIN_MANAGER,
     items: [
       { name: "إدارة المستخدمين", path: "/admin/users", icon: Users, allowedRoles: ADMIN_MANAGER },
-      { name: "الأدوار والصلاحيات", path: "/admin/roles", icon: Settings, allowedRoles: ADMIN_MANAGER },
+      { name: "الأدوار والصلاحيات", path: "/admin/roles", icon: Settings, allowedRoles: ["Admin"] },
     ]
   }
 ];

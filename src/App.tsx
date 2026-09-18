@@ -156,7 +156,7 @@ export default function App() {
 
                 <Route element={<FeatureBoundaryLayout featureName="الإدارة والصلاحيات" />}>
                   <Route path="/admin/users" element={<ProtectedRoute requiredPermissions={["Admin", "Manager"]}><UsersPage /></ProtectedRoute>} />
-                  <Route path="/admin/roles" element={<ProtectedRoute requiredPermissions={["Admin", "Manager"]}><RolesPage /></ProtectedRoute>} />
+                  <Route path="/admin/roles" element={<ProtectedRoute requiredPermissions={["Admin"]}><RolesPage /></ProtectedRoute>} />
                 </Route>
 
                 <Route path="/settings" element={<ComingSoon label="الإعدادات" />} />
