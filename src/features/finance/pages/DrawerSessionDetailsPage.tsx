@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDrawerSessionById, useSafes } from '../hooks/useFinance';
 import { useCreateOwnerTransaction } from '../hooks/useOwnerTransactions';
-import { usePaymentSourcePrompt } from '../hooks/usePaymentSourcePrompt';
 import { PageLoader } from '@/shared/components/ui/PageLoader';
 import { formatCurrency } from '@/shared/utils/currency';
 import { formatDate } from '@/shared/utils/date';
@@ -29,7 +28,6 @@ export function DrawerSessionDetailsPage() {
   const { data: safes } = useSafes();
   const mainSafe = safes?.find(s => s.isMain) || safes?.[0];
   const { mutate: createOwnerTransaction, isPending: isWithdrawing } = useCreateOwnerTransaction();
-  const { promptPaymentSource, PaymentSourcePromptModal } = usePaymentSourcePrompt();
   const { setTitle, setBackButton } = useHeaderStore();
 
   useEffect(() => {
@@ -49,16 +47,18 @@ export function DrawerSessionDetailsPage() {
       </div>
     );
   }
-  const handleWithdrawSubmit = async (e: React.FormEvent) => {
+  // Withdrawal here is always sourced from the Safe, never "the Drawer" - the
+  // generic Drawer withdrawal path records against whichever shift is
+  // *currently open*, which is a different pool of cash than this closed
+  // session's money. Only once this session's cash has been deposited into
+  // the Safe does a withdrawal here correspond to real, tracked funds.
+  const handleWithdrawSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!withdrawAmount || withdrawAmount <= 0) return;
-    const source = await promptPaymentSource(11); // GlobalTransactionCategory.OwnerWithdrawal
-    if (source) {
-      createOwnerTransaction(
-        { category: 11, amount: Number(withdrawAmount), notes: withdrawNotes, paymentSource: source },
-        { onSuccess: () => setIsWithdrawModalOpen(false) }
-      );
-    }
+    createOwnerTransaction(
+      { category: 11, amount: Number(withdrawAmount), notes: withdrawNotes, paymentSource: 2 },
+      { onSuccess: () => setIsWithdrawModalOpen(false) }
+    );
   };
 
   return (
@@ -99,7 +99,9 @@ export function DrawerSessionDetailsPage() {
             {canManageSession && (
               <button
                 onClick={() => { setWithdrawAmount(''); setWithdrawNotes(''); setIsWithdrawModalOpen(true); }}
-                className={tokens.btn.primary + " flex items-center gap-2 py-1.5 px-4 text-sm"}
+                disabled={!session.depositedToSafeAt}
+                title={!session.depositedToSafeAt ? 'استلم الخزينة للدرج أولاً قبل سحب المبلغ' : undefined}
+                className={tokens.btn.primary + " flex items-center gap-2 py-1.5 px-4 text-sm disabled:opacity-50 disabled:cursor-not-allowed"}
               >
                 <Wallet className="w-4 h-4" />
                 سحب مبلغ
@@ -145,11 +147,10 @@ export function DrawerSessionDetailsPage() {
           defaultAmount={session.closingBalance || 0}
         />
       )}
-      <PaymentSourcePromptModal />
       <OwnerTransactionForm
         isOpen={isWithdrawModalOpen}
         onClose={() => setIsWithdrawModalOpen(false)}
-        title="سحب مبلغ للمالك"
+        title="سحب مبلغ للمالك من الخزينة"
         amount={withdrawAmount}
         onAmountChange={setWithdrawAmount}
         notes={withdrawNotes}
