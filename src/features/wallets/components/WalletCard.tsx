@@ -61,10 +61,10 @@ export function WalletCard({ wallet, onCashIn, onCashOut, onRecharge }: WalletCa
             <button 
               onClick={() => onCashIn(wallet)}
               className="flex-1 py-2 sm:py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-all bg-[#0f8e4c] hover:bg-[#0c7a40] text-white shadow-sm"
-              title="عملية بيع"
+              title="عملية إيداع"
             >
               <ArrowDownToLine size={16} />
-              بيع
+              إيداع
             </button>
           )}
           {hasRecharge && (

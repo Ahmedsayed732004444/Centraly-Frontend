@@ -319,9 +319,9 @@ export function WalletsAdminPage() {
       {activeTab === 'list' && (
         <>
           {/* ── Summary cards ── */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-stretch">
             {/* Total balance */}
-            <div className="col-span-1 sm:col-span-2 bg-gradient-to-l from-[#0f8e4c] to-[#0a6e3a] rounded-2xl p-5 text-white shadow-md flex items-center justify-between">
+            <div className="col-span-1 sm:col-span-2 bg-gradient-to-l from-[#0f8e4c] to-[#0a6e3a] rounded-2xl p-5 text-white shadow-md flex items-center justify-between min-h-[110px]">
               <div>
                 <p className="text-sm font-medium text-white/70 mb-1">إجمالي الأرصدة في جميع المحافظ</p>
                 <p className="text-3xl font-bold font-mono tracking-tight">
@@ -336,7 +336,7 @@ export function WalletsAdminPage() {
             </div>
 
             {/* Pinned / visible wallets */}
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200 flex items-center justify-between">
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200 flex items-center justify-between min-h-[110px]">
               <div>
                 <p className="text-sm font-medium text-gray-500 mb-1">ظاهر في صفحة العمليات</p>
                 <p className="text-3xl font-bold text-gray-800">
@@ -441,7 +441,7 @@ export function WalletsAdminPage() {
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {[
-                { type: WalletOperationType.CashIn, label: 'بيع', desc: 'إيداع رصيد للعميل' },
+                { type: WalletOperationType.CashIn, label: 'إيداع', desc: 'إيداع رصيد للعميل' },
                 { type: WalletOperationType.CashOut, label: 'سحب', desc: 'سحب كاش من العميل' },
                 { type: WalletOperationType.Recharge, label: 'رصيد', desc: 'شحن رصيد هوائي' },
               ].map(op => {
