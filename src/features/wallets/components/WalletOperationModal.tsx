@@ -48,7 +48,7 @@ export function WalletOperationModal({
     : 'bg-[#0f8e4c] hover:bg-[#0c7a40]';
 
   const transferredLabel = isRecharge
-    ? 'اتشحن بكام للزبون؟ (القيمة اللي راحت لرصيد العميل) *'
+    ? 'اتشحن بكام للزبون؟ *'
     : isCashIn
     ? 'هتحول كام للمحفظة؟ *'
     : 'الزبون حولك كام؟ *';
