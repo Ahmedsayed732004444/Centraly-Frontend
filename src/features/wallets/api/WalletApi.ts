@@ -78,6 +78,11 @@ export class WalletApi {
     const { data } = await apiClient.post<WalletOperationResponse>(`/wallets/${reqData.walletId}/operations`, reqData);
     return data;
   }
+
+  async deleteWallet(walletId: string): Promise<boolean> {
+    const { data } = await apiClient.delete<boolean>(`/wallets/${walletId}`);
+    return data;
+  }
 }
 
 export const walletApi = new WalletApi();

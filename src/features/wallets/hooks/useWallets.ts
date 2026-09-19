@@ -45,6 +45,17 @@ export function useWallets() {
     }
   });
 
+  const deleteWalletMutation = useMutation({
+    mutationFn: (walletId: string) => walletApi.deleteWallet(walletId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["wallets"] });
+      toast.success("تم حذف المحفظة بنجاح");
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, "حدث خطأ أثناء حذف المحفظة"));
+    }
+  });
+
   return {
     wallets: walletsQuery.data ?? [],
     isLoading: walletsQuery.isLoading,
@@ -54,5 +65,7 @@ export function useWallets() {
     isUpdating: updateWalletMutation.isPending,
     processOperation: processOperationMutation.mutate,
     isProcessing: processOperationMutation.isPending,
+    deleteWallet: deleteWalletMutation.mutate,
+    isDeleting: deleteWalletMutation.isPending,
   };
 }

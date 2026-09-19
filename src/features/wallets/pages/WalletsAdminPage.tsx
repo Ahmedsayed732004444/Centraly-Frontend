@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useWallets } from '../hooks/useWallets';
 import { tokens } from '@/shared/styles/tokens';
-import { Wallet, Plus, Edit2, Info } from 'lucide-react';
+import { Wallet, Plus, Edit2, Info, Trash2 } from 'lucide-react';
 import { RightDrawer } from '@/shared/components/ui/RightDrawer';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,10 +13,10 @@ import { useHeaderStore } from '@/shared/hooks/useHeaderStore';
 import { useNavigate } from 'react-router-dom';
 import { WalletResponse, WalletOperationType } from '../schemas/walletSchemas';
 import { GlobalWalletOperationsTable } from '../components/GlobalWalletOperationsTable';
-import { EmptyState } from '@/shared/components/ui/EmptyState';
 import { Badge } from '@/shared/components/ui/Badge';
 import { RowActions } from '@/shared/components/ui/RowActions';
 import { walletOpLabels } from '../utils/walletOpLabels';
+import { DataTable, Column } from '@/shared/components/ui/DataTable';
 
 const walletFormSchema = z.object({
   name: z.string().min(1, 'اسم المحفظة مطلوب'),
@@ -33,10 +33,13 @@ type WalletFormValues = z.infer<typeof walletFormSchema>;
 export function WalletsAdminPage() {
   const { setTitle } = useHeaderStore();
   const navigate = useNavigate();
-  const { wallets, isLoading, createWallet, isCreating, updateWallet, isUpdating } = useWallets();
+  const { wallets, isLoading, createWallet, isCreating, updateWallet, isUpdating, deleteWallet } = useWallets();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingWallet, setEditingWallet] = useState<WalletResponse | null>(null);
   const [activeTab, setActiveTab] = useState<'list' | 'history'>('list');
+
+  const [pageIndex, setPageIndex] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     setTitle('إدارة المحافظ');
@@ -147,6 +150,87 @@ export function WalletsAdminPage() {
       </button>
     </>
   );
+
+  const totalCount = wallets.length;
+  const totalPages = Math.ceil(totalCount / pageSize);
+  const paginatedWallets = wallets.slice((pageIndex - 1) * pageSize, pageIndex * pageSize);
+
+  const columns: Column<WalletResponse>[] = [
+    {
+      header: 'اسم المحفظة',
+      cell: (wallet) => (
+        <div className="flex items-center gap-3">
+          {wallet.imageUrl ? (
+            <img src={resolveImageUrl(wallet.imageUrl)} alt={wallet.name} className="w-8 h-8 rounded-full object-cover border border-gray-200 shrink-0" />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
+              <Wallet size={16} />
+            </div>
+          )}
+          <span>{wallet.name}</span>
+        </div>
+      )
+    },
+    {
+      header: 'العمليات المتاحة',
+      cell: (wallet) => (
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {(wallet.allowedOperations && wallet.allowedOperations.length > 0
+            ? wallet.allowedOperations
+            : [WalletOperationType.CashIn, WalletOperationType.CashOut]
+          ).map(op => (
+            <Badge key={op} variant={walletOpLabels[op].variant}>{walletOpLabels[op].label}</Badge>
+          ))}
+        </div>
+      )
+    },
+    {
+      header: 'رقم التليفون',
+      cell: (wallet) => <span dir="ltr" className="text-slate-500">{wallet.phoneNumber}</span>
+    },
+    {
+      header: 'اسم المالك',
+      cell: (wallet) => <span className="text-slate-500">{wallet.ownerName || '-'}</span>
+    },
+    {
+      header: 'الرصيد الحالي',
+      cell: (wallet) => <span className="font-semibold text-[#0f8e4c] font-mono">{formatNumber(wallet.balance)}</span>
+    },
+    {
+      header: 'تاريخ الإنشاء',
+      cell: (wallet) => <span className="text-slate-500">{formatDateTime(wallet.createdAt)}</span>
+    },
+    {
+      header: 'الحالة',
+      cell: (wallet) => (
+        <Badge variant={wallet.isActive ? 'success' : 'danger'}>
+          {wallet.isActive ? 'نشط' : 'غير نشط'}
+        </Badge>
+      )
+    },
+    {
+      header: 'إجراءات',
+      cell: (wallet) => (
+        <RowActions
+          actions={[
+            { icon: Edit2, label: 'تعديل', onClick: () => openEditDrawer(wallet) },
+            { icon: Info, label: 'التفاصيل', onClick: () => navigate(`/wallets/${wallet.id}`) },
+            { 
+              icon: Trash2, 
+              label: 'حذف', 
+              onClick: () => {
+                if (window.confirm('هل أنت متأكد من حذف هذه المحفظة؟')) {
+                  deleteWallet(wallet.id);
+                }
+              },
+              tone: 'danger'
+            }
+          ]}
+        />
+      )
+    }
+  ];
+
   return (
     <div className="space-y-6">
       {/* Tabs */}
@@ -166,7 +250,25 @@ export function WalletsAdminPage() {
       </div>
       {activeTab === 'list' && (
         <>
-          <div className="flex justify-end">
+          <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <span>عرض</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setPageIndex(1);
+                }}
+                className={tokens.input + " py-1.5 px-3 min-h-0 text-sm"}
+                style={{ width: '80px' }}
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+              <span>محفظة بالصفحة</span>
+            </div>
             <button
               onClick={openCreateDrawer}
               className={tokens.btn.primary + " flex items-center gap-2"}
@@ -175,82 +277,19 @@ export function WalletsAdminPage() {
               محفظة جديدة
             </button>
           </div>
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            {isLoading ? (
-              <div className="p-8 text-center text-gray-500">جاري تحميل المحافظ...</div>
-            ) : wallets.length === 0 ? (
-              <EmptyState entity="محافظ" icon={Wallet} />
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-right">
-              <thead className="text-slate-500 border-b border-slate-100">
-                <tr>
-                  <th className="px-6 py-3 text-xs font-semibold whitespace-nowrap">اسم المحفظة</th>
-                  <th className="px-6 py-3 text-xs font-semibold whitespace-nowrap">العمليات المتاحة</th>
-                  <th className="px-6 py-3 text-xs font-semibold whitespace-nowrap">رقم التليفون</th>
-                  <th className="px-6 py-3 text-xs font-semibold whitespace-nowrap">اسم المالك</th>
-                  <th className="px-6 py-3 text-xs font-semibold whitespace-nowrap">الرصيد الحالي</th>
-                  <th className="px-6 py-3 text-xs font-semibold whitespace-nowrap">تاريخ الإنشاء</th>
-                  <th className="px-6 py-3 text-xs font-semibold whitespace-nowrap">الحالة</th>
-                  <th className="px-6 py-3 text-xs font-semibold whitespace-nowrap">إجراءات</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {wallets.map(wallet => (
-                  <tr
-                    key={wallet.id}
-                    className="hover:bg-slate-50/50 cursor-pointer transition-colors"
-                    onClick={() => navigate(`/wallets/${wallet.id}`)}
-                  >
-                    <td className="px-6 py-4 font-medium text-slate-800 whitespace-nowrap">
-                      <div className="flex items-center gap-3">
-                        {wallet.imageUrl ? (
-                          <img src={resolveImageUrl(wallet.imageUrl)} alt={wallet.name} className="w-8 h-8 rounded-full object-cover border border-gray-200 shrink-0" />
-                        ) : (
-                          <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
-                            <Wallet size={16} />
-                          </div>
-                        )}
-                        <span>{wallet.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        {(wallet.allowedOperations && wallet.allowedOperations.length > 0
-                          ? wallet.allowedOperations
-                          : [WalletOperationType.CashIn, WalletOperationType.CashOut]
-                        ).map(op => (
-                          <Badge key={op} variant={walletOpLabels[op].variant}>{walletOpLabels[op].label}</Badge>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-slate-500 whitespace-nowrap" dir="ltr">{wallet.phoneNumber}</td>
-                    <td className="px-6 py-4 text-slate-500 whitespace-nowrap">{wallet.ownerName || '-'}</td>
-                    <td className="px-6 py-4 font-semibold text-[#0f8e4c] font-mono whitespace-nowrap">
-                      {formatNumber(wallet.balance)}
-                    </td>
-                    <td className="px-6 py-4 text-slate-500 whitespace-nowrap">{formatDateTime(wallet.createdAt)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge variant={wallet.isActive ? 'success' : 'danger'}>
-                        {wallet.isActive ? 'نشط' : 'غير نشط'}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <RowActions
-                        actions={[
-                          { icon: Edit2, label: 'تعديل', onClick: () => openEditDrawer(wallet) },
-                          { icon: Info, label: 'التفاصيل', onClick: () => navigate(`/wallets/${wallet.id}`) },
-                        ]}
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-      </>
+          <DataTable
+            columns={columns}
+            data={paginatedWallets}
+            isLoading={isLoading}
+            pageIndex={pageIndex}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            pageSize={pageSize}
+            onNextPage={() => setPageIndex((p) => p + 1)}
+            onPrevPage={() => setPageIndex((p) => p - 1)}
+            emptyEntity="محافظ"
+          />
+        </>
       )}
       {activeTab === 'history' && (
         <GlobalWalletOperationsTable />
