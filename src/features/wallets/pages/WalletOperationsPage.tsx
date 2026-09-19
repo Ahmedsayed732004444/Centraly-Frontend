@@ -8,6 +8,18 @@ import { useHeaderStore } from '@/shared/hooks/useHeaderStore';
 import { WalletCard } from '../components/WalletCard';
 import { WalletOperationModal } from '../components/WalletOperationModal';
 
+const PINNED_WALLETS_KEY = 'pinnedWalletIds';
+
+function getPinnedIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem(PINNED_WALLETS_KEY);
+    if (!raw) return new Set();
+    return new Set(JSON.parse(raw) as string[]);
+  } catch {
+    return new Set();
+  }
+}
+
 const operationSchema = z.object({
   walletId: z.string().min(1, 'الرجاء اختيار المحفظة'),
   operationType: z.nativeEnum(WalletOperationType),
@@ -23,10 +35,18 @@ export function WalletOperationsPage() {
   const { wallets, isLoading, processOperation, isProcessing } = useWallets();
   const [selectedWallet, setSelectedWallet] = useState<WalletResponse | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [pinnedIds, setPinnedIds] = useState<Set<string>>(getPinnedIds);
 
   useEffect(() => {
     setTitle('عمليات المحافظ');
   }, [setTitle]);
+
+  // Re-read pinned IDs when page comes into focus (in case admin updated them)
+  useEffect(() => {
+    const handleFocus = () => setPinnedIds(getPinnedIds());
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
 
   const form = useForm<OperationForm>({
     resolver: zodResolver(operationSchema) as any,
@@ -45,13 +65,6 @@ export function WalletOperationsPage() {
   const transferredAmount = watch('transferredAmount') || 0;
   const physicalCashAmount = watch('physicalCashAmount') || 0;
 
-  // profit = (Cash received by store) - (Cash sent to customer/wallet)
-  // For CashIn (Deposit) and Recharge (both take physicalCash in and send transferred
-  // out - WalletService.ProcessOperationAsync treats them identically): profit = physicalCash - transferred.
-  // For CashOut (Withdrawal): We receive transfer, and we give physicalCash. Profit = transferred - physicalCash.
-  // This used to route Recharge through the CashOut formula (falling into the ternary's
-  // else branch), showing the shop owner the opposite sign of the profit/loss the backend
-  // actually records for that same recharge.
   const profit = operationType === WalletOperationType.CashOut
     ? Number(transferredAmount) - Number(physicalCashAmount)
     : Number(physicalCashAmount) - Number(transferredAmount);
@@ -89,22 +102,33 @@ export function WalletOperationsPage() {
 
   const activeWallets = wallets.filter(w => w.isActive);
 
+  // If we have saved pinned IDs, show only those; otherwise fall back to all active
+  const noPinsSaved = localStorage.getItem(PINNED_WALLETS_KEY) === null;
+  const visibleWallets = noPinsSaved
+    ? activeWallets
+    : activeWallets.filter(w => pinnedIds.has(w.id));
+
   return (
     <div className="flex flex-col h-full bg-gray-50/50">
       {isLoading ? (
         <div className="flex items-center justify-center h-full min-h-[400px]">
           <div className="text-center text-gray-500 py-12">جاري تحميل المحافظ...</div>
         </div>
-      ) : activeWallets.length === 0 ? (
+      ) : visibleWallets.length === 0 ? (
         <div className="flex items-center justify-center h-full min-h-[400px]">
-          <div className="text-center text-red-500 py-12">
-            لا يوجد محافظ نشطة مسجلة! يرجى إضافة محفظة أولاً من الإعدادات.
+          <div className="text-center text-gray-500 py-12 space-y-2">
+            <p className="font-semibold text-gray-700">لا توجد محافظ مسجلة</p>
+            <p className="text-sm text-gray-400">
+              {activeWallets.length > 0
+                ? 'يمكنك تفعيل عرض المحافظ من صفحة إدارة المحافظ عبر زر "إظهار"'
+                : 'يرجى إضافة محفظة أولاً من الإعدادات'}
+            </p>
           </div>
         </div>
       ) : (
         <div className="p-5 flex-1 overflow-y-auto custom-scrollbar">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 content-start max-w-screen-2xl mx-auto">
-            {activeWallets.map(wallet => (
+            {visibleWallets.map(wallet => (
               <WalletCard
                 key={wallet.id}
                 wallet={wallet}
@@ -127,7 +151,6 @@ export function WalletOperationsPage() {
         onClose={closeModal}
         isProcessing={isProcessing}
       />
-
     </div>
   );
 }

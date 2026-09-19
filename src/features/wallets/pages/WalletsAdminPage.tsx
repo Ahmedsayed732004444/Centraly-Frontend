@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useWallets } from '../hooks/useWallets';
 import { tokens } from '@/shared/styles/tokens';
-import { Wallet, Plus, Edit2, Info, Trash2 } from 'lucide-react';
+import { Wallet, Plus, Edit2, Info, Trash2, Eye, EyeOff } from 'lucide-react';
 import { RightDrawer } from '@/shared/components/ui/RightDrawer';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -17,6 +17,22 @@ import { Badge } from '@/shared/components/ui/Badge';
 import { RowActions } from '@/shared/components/ui/RowActions';
 import { walletOpLabels } from '../utils/walletOpLabels';
 import { DataTable, Column } from '@/shared/components/ui/DataTable';
+
+const PINNED_WALLETS_KEY = 'pinnedWalletIds';
+
+function getPinnedIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem(PINNED_WALLETS_KEY);
+    if (!raw) return new Set();
+    return new Set(JSON.parse(raw) as string[]);
+  } catch {
+    return new Set();
+  }
+}
+
+function savePinnedIds(ids: Set<string>) {
+  localStorage.setItem(PINNED_WALLETS_KEY, JSON.stringify([...ids]));
+}
 
 const walletFormSchema = z.object({
   name: z.string().min(1, 'اسم المحفظة مطلوب'),
@@ -37,6 +53,7 @@ export function WalletsAdminPage() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingWallet, setEditingWallet] = useState<WalletResponse | null>(null);
   const [activeTab, setActiveTab] = useState<'list' | 'history'>('list');
+  const [pinnedIds, setPinnedIds] = useState<Set<string>>(getPinnedIds);
 
   const [pageIndex, setPageIndex] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -44,6 +61,31 @@ export function WalletsAdminPage() {
   useEffect(() => {
     setTitle('إدارة المحافظ');
   }, [setTitle]);
+
+  // On first load with no saved pins, default to showing all active wallets
+  useEffect(() => {
+    if (!isLoading && wallets.length > 0) {
+      const stored = localStorage.getItem(PINNED_WALLETS_KEY);
+      if (stored === null) {
+        const allIds = new Set(wallets.filter(w => w.isActive).map(w => w.id));
+        savePinnedIds(allIds);
+        setPinnedIds(allIds);
+      }
+    }
+  }, [isLoading, wallets]);
+
+  const togglePin = (walletId: string) => {
+    setPinnedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(walletId)) {
+        next.delete(walletId);
+      } else {
+        next.add(walletId);
+      }
+      savePinnedIds(next);
+      return next;
+    });
+  };
 
   const form = useForm<WalletFormValues>({
     resolver: zodResolver(walletFormSchema) as any,
@@ -63,7 +105,7 @@ export function WalletsAdminPage() {
   const toggleOperation = (type: WalletOperationType) => {
     const current = form.getValues('allowedOperations') || [];
     if (current.includes(type)) {
-      if (current.length === 1) return; // Must have at least one
+      if (current.length === 1) return;
       form.setValue('allowedOperations', current.filter(t => t !== type), { shouldValidate: true });
     } else {
       form.setValue('allowedOperations', [...current, type], { shouldValidate: true });
@@ -134,6 +176,7 @@ export function WalletsAdminPage() {
     setEditingWallet(null);
     form.reset();
   };
+
   const isSaving = isCreating || isUpdating;
   const drawerFooter = (
     <>
@@ -155,7 +198,31 @@ export function WalletsAdminPage() {
   const totalPages = Math.ceil(totalCount / pageSize);
   const paginatedWallets = wallets.slice((pageIndex - 1) * pageSize, pageIndex * pageSize);
 
+  const totalBalance = wallets.reduce((sum, w) => sum + (w.balance || 0), 0);
+  const pinnedCount = wallets.filter(w => pinnedIds.has(w.id)).length;
+
   const columns: Column<WalletResponse>[] = [
+    {
+      header: 'إظهار في العمليات',
+      cell: (wallet) => {
+        const isPinned = pinnedIds.has(wallet.id);
+        return (
+          <button
+            type="button"
+            onClick={() => togglePin(wallet.id)}
+            title={isPinned ? 'ظاهر - اضغط للإخفاء' : 'مخفي - اضغط للإظهار'}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all ${
+              isPinned
+                ? 'bg-[#e6f4ed] text-[#0f8e4c] border-[#0f8e4c]/30 hover:bg-[#d0ecdf]'
+                : 'bg-gray-100 text-gray-400 border-gray-200 hover:bg-gray-200'
+            }`}
+          >
+            {isPinned ? <Eye size={13} /> : <EyeOff size={13} />}
+            {isPinned ? 'ظاهر' : 'مخفي'}
+          </button>
+        );
+      }
+    },
     {
       header: 'اسم المحفظة',
       cell: (wallet) => (
@@ -248,8 +315,43 @@ export function WalletsAdminPage() {
           سجل العمليات الشامل
         </button>
       </div>
+
       {activeTab === 'list' && (
         <>
+          {/* ── Summary cards ── */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Total balance */}
+            <div className="col-span-1 sm:col-span-2 bg-gradient-to-l from-[#0f8e4c] to-[#0a6e3a] rounded-2xl p-5 text-white shadow-md flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-white/70 mb-1">إجمالي الأرصدة في جميع المحافظ</p>
+                <p className="text-3xl font-bold font-mono tracking-tight">
+                  {isLoading ? '...' : formatNumber(totalBalance)}
+                  <span className="text-lg font-normal ms-1 text-white/70">ج.م</span>
+                </p>
+                <p className="text-xs text-white/60 mt-1">{wallets.length} محفظة إجمالاً</p>
+              </div>
+              <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center shrink-0">
+                <Wallet size={28} className="text-white" />
+              </div>
+            </div>
+
+            {/* Pinned / visible wallets */}
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500 mb-1">ظاهر في صفحة العمليات</p>
+                <p className="text-3xl font-bold text-gray-800">
+                  {pinnedCount}
+                  <span className="text-base font-normal text-gray-400 ms-1">/ {wallets.length}</span>
+                </p>
+                <p className="text-xs text-gray-400 mt-1">اضغط "إظهار / إخفاء" للتحكم</p>
+              </div>
+              <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center shrink-0">
+                <Eye size={24} className="text-blue-500" />
+              </div>
+            </div>
+          </div>
+
+          {/* Toolbar */}
           <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-200">
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <span>عرض</span>
@@ -277,6 +379,7 @@ export function WalletsAdminPage() {
               محفظة جديدة
             </button>
           </div>
+
           <DataTable
             columns={columns}
             data={paginatedWallets}
@@ -294,6 +397,7 @@ export function WalletsAdminPage() {
       {activeTab === 'history' && (
         <GlobalWalletOperationsTable />
       )}
+
       <RightDrawer
         isOpen={isDrawerOpen}
         onClose={closeDrawer}
