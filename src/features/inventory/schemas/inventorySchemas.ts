@@ -134,8 +134,9 @@ export interface PublicProductResponse {
   batches: PublicProductBatchResponse[];
 }
 
-export function isMaintenanceProduct(usage?: ProductUsageDto): boolean {
-  return usage === ProductUsageDto.MaintenanceOnly || usage === ProductUsageDto.SaleAndMaintenance;
+export function isMaintenanceProduct(usage?: ProductUsageDto | number | string | null): boolean {
+  const n = Number(usage);
+  return n === ProductUsageDto.MaintenanceOnly || n === ProductUsageDto.SaleAndMaintenance;
 }
 
 /**

@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Column } from '@/shared/components/ui/DataTable';
 import { PickerModal } from '@/shared/components/ui/PickerModal';
 import { useProducts } from '@/features/inventory/hooks/useInventory';
-import { ProductResponse, isMaintenanceProduct, getMaintenancePrice } from '@/features/inventory/schemas/inventorySchemas';
+import { ProductResponse, ProductUsageDto, getMaintenancePrice } from '@/features/inventory/schemas/inventorySchemas';
 import { formatNumber } from '@/shared/utils/currency';
 
 interface Props {
@@ -21,14 +21,25 @@ export function MaintenanceProductPicker({ isOpen, onClose, onAdd, excludeProduc
 
   const excludedSet = useMemo(() => new Set(excludeProductIds), [excludeProductIds]);
 
-  // Fetch all products (or a large enough page) and filter locally for maintenance usage
-  const { data, isLoading } = useProducts({ pageSize: 2000 });
+  // Fetch only maintenance-eligible products from the backend directly (more reliable
+  // than client-side filtering which can silently miss products if the API returns usage
+  // as a string or if there are more than the page-size products in total).
+  // We request a large page so all matches come back in one shot, then apply the
+  // local search-term filter on top.
+  const { data, isLoading } = useProducts({ pageSize: 2000, usage: ProductUsageDto.SaleAndMaintenance });
+  const { data: data2, isLoading: isLoading2 } = useProducts({ pageSize: 2000, usage: ProductUsageDto.MaintenanceOnly });
 
   const maintenanceProducts = useMemo(() => {
-    if (!data?.items) return [];
-    let filtered = data.items.filter(
-      (p) => isMaintenanceProduct(p.usage)
-    );
+    const items1 = data?.items ?? [];
+    const items2 = data2?.items ?? [];
+    // Merge both result sets (SaleAndMaintenance + MaintenanceOnly), deduplicate by productId
+    const merged = [...items1, ...items2];
+    const seen = new Set<string>();
+    let filtered = merged.filter((p) => {
+      if (seen.has(p.productId)) return false;
+      seen.add(p.productId);
+      return true;
+    });
     if (searchTerm) {
       const lower = searchTerm.toLowerCase();
       filtered = filtered.filter(
@@ -36,7 +47,7 @@ export function MaintenanceProductPicker({ isOpen, onClose, onAdd, excludeProduc
       );
     }
     return filtered;
-  }, [data?.items, searchTerm]);
+  }, [data?.items, data2?.items, searchTerm]);
 
   // Client-side pagination
   const totalCount = maintenanceProducts.length;
@@ -137,7 +148,7 @@ export function MaintenanceProductPicker({ isOpen, onClose, onAdd, excludeProduc
       }}
       columns={columns}
       data={paginatedProducts}
-      isLoading={isLoading}
+      isLoading={isLoading || isLoading2}
       pagination={{
         pageIndex,
         totalPages,
