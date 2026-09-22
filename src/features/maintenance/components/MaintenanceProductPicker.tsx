@@ -41,10 +41,15 @@ export function MaintenanceProductPicker({ isOpen, onClose, onAdd, excludeProduc
       return true;
     });
     if (searchTerm) {
-      const lower = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (p) => (p.name && p.name.toLowerCase().includes(lower)) || (p.barcode && p.barcode.toLowerCase().includes(lower))
-      );
+      const terms = searchTerm.toLowerCase().trim().split(/\s+/);
+      filtered = filtered.filter((p) => {
+        const name = (p.name ?? '').toLowerCase();
+        const barcode = (p.barcode ?? '').toLowerCase();
+        // Every search term must appear somewhere in the name or barcode
+        return terms.every(
+          (t) => name.includes(t) || barcode.includes(t)
+        );
+      });
     }
     return filtered;
   }, [data?.items, data2?.items, searchTerm]);
