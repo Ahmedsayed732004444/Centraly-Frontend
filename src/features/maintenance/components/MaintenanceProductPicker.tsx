@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { Column } from '@/shared/components/ui/DataTable';
 import { PickerModal } from '@/shared/components/ui/PickerModal';
+import { useDebounce } from '@/shared/hooks/useDebounce';
 import { useProducts } from '@/features/inventory/hooks/useInventory';
 import { ProductResponse, ProductUsageDto, getMaintenancePrice } from '@/features/inventory/schemas/inventorySchemas';
 import { formatNumber } from '@/shared/utils/currency';
@@ -19,51 +20,25 @@ export function MaintenanceProductPicker({ isOpen, onClose, onAdd, excludeProduc
   const [pageIndex, setPageIndex] = useState(1);
   const [selectedMap, setSelectedMap] = useState<Map<string, ProductResponse>>(new Map());
 
-  const excludedSet = useMemo(() => new Set(excludeProductIds), [excludeProductIds]);
+  const excludedSet = new Set(excludeProductIds);
+  const debouncedSearch = useDebounce(searchTerm, 400);
 
-  // Fetch only maintenance-eligible products from the backend directly (more reliable
-  // than client-side filtering which can silently miss products if the API returns usage
-  // as a string or if there are more than the page-size products in total).
-  // We request a large page so all matches come back in one shot, then apply the
-  // local search-term filter on top.
-  const { data, isLoading } = useProducts({ pageSize: 2000, usage: ProductUsageDto.SaleAndMaintenance });
-  const { data: data2, isLoading: isLoading2 } = useProducts({ pageSize: 2000, usage: ProductUsageDto.MaintenanceOnly });
+  // Let the backend do the search and pagination (same pattern as ProductPickerModal),
+  // instead of pulling every maintenance product into the browser and filtering there -
+  // the API caps page size at 50, so a "fetch everything" approach silently misses any
+  // product past the first 50 of each usage bucket. ExcludeUsage=SaleOnly covers both
+  // MaintenanceOnly and SaleAndMaintenance products in a single server-side query.
+  const { data, isLoading } = useProducts({
+    pageNumber: pageIndex,
+    pageSize: PAGE_SIZE,
+    searchValue: debouncedSearch || undefined,
+    excludeUsage: ProductUsageDto.SaleOnly,
+  });
 
-  const maintenanceProducts = useMemo(() => {
-    const items1 = data?.items ?? [];
-    const items2 = data2?.items ?? [];
-    // Merge both result sets (SaleAndMaintenance + MaintenanceOnly), deduplicate by productId
-    const merged = [...items1, ...items2];
-    const seen = new Set<string>();
-    let filtered = merged.filter((p) => {
-      if (seen.has(p.productId)) return false;
-      seen.add(p.productId);
-      return true;
-    });
-    if (searchTerm) {
-      const terms = searchTerm.toLowerCase().trim().split(/\s+/);
-      filtered = filtered.filter((p) => {
-        const name = (p.name ?? '').toLowerCase();
-        const barcode = (p.barcode ?? '').toLowerCase();
-        // Every search term must appear somewhere in the name or barcode
-        return terms.every(
-          (t) => name.includes(t) || barcode.includes(t)
-        );
-      });
-    }
-    return filtered;
-  }, [data?.items, data2?.items, searchTerm]);
-
-  // Client-side pagination
-  const totalCount = maintenanceProducts.length;
-  const totalPages = Math.ceil(totalCount / PAGE_SIZE) || 1;
-  const paginatedProducts = useMemo(() => {
-    const start = (pageIndex - 1) * PAGE_SIZE;
-    return maintenanceProducts.slice(start, start + PAGE_SIZE);
-  }, [maintenanceProducts, pageIndex]);
+  const maintenanceProducts = data?.items ?? [];
 
   // Reset state when opened
-  useMemo(() => {
+  useEffect(() => {
     if (isOpen) {
       setSearchTerm('');
       setPageIndex(1);
@@ -152,12 +127,12 @@ export function MaintenanceProductPicker({ isOpen, onClose, onAdd, excludeProduc
         setPageIndex(1);
       }}
       columns={columns}
-      data={paginatedProducts}
-      isLoading={isLoading || isLoading2}
+      data={maintenanceProducts}
+      isLoading={isLoading}
       pagination={{
         pageIndex,
-        totalPages,
-        totalCount,
+        totalPages: data?.totalPages ?? 1,
+        totalCount: data?.totalCount ?? 0,
         pageSize: PAGE_SIZE,
         onNextPage: () => setPageIndex((p) => p + 1),
         onPrevPage: () => setPageIndex((p) => Math.max(1, p - 1)),
