@@ -16,20 +16,17 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 export const SalesReturnsPage = () => {
   const { hasAnyRole } = useAuth();
   const canExport = hasAnyRole(['Admin', 'Manager']);
-  const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [dateFilter, setDateFilter] = useState('');
   const debouncedSearch = useDebounce(search, 500);
   const navigate = useNavigate();
-  const { data, isLoading } = useSalesReturns({
-    pageNumber: page,
+  const { items, totalCount, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage } = useSalesReturns({
     pageSize: 10,
     searchValue: debouncedSearch,
     startDate: dateFilter ? toUtcStartOfDayISOString(dateFilter) : undefined,
       endDate: dateFilter ? toUtcEndOfDayISOString(dateFilter) : undefined,
   });
   const columns = getSalesReturnsColumns();
-  const filteredData = data?.items || [];
   return (
     <div className="space-y-4 sm:space-y-6 w-full">
       <div className="flex justify-end items-center">
@@ -78,15 +75,13 @@ export const SalesReturnsPage = () => {
         </div>}
         <div className="overflow-x-auto">
         <DataTable
-          data={filteredData}
+          data={items}
           columns={columns}
           isLoading={isLoading}
-          pageIndex={page}
-          pageSize={10}
-          totalCount={data?.totalCount || 0}
-          totalPages={data?.totalPages || 1}
-          onNextPage={() => setPage(p => Math.min(p + 1, data?.totalPages || 1))}
-          onPrevPage={() => setPage(p => Math.max(p - 1, 1))}
+          totalCount={totalCount}
+          hasNextPage={hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
+          onLoadMore={() => fetchNextPage()}
           emptyEntity="مرتجعات مبيعات"
         />
         </div>

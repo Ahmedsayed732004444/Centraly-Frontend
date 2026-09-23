@@ -6,12 +6,10 @@ import { formatDateTime } from '@/shared/utils/date';
 interface SupplierReturnsTableProps {
   data: SupplierReturnResponse[];
   isLoading: boolean;
-  pageIndex: number;
-  totalPages: number;
-  totalCount: number;
-  pageSize: number;
-  onNextPage: () => void;
-  onPrevPage: () => void;
+  totalCount?: number;
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
+  onLoadMore?: () => void;
   onRowClick?: (row: SupplierReturnResponse) => void;
 }
 

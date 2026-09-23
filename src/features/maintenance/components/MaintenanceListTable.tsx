@@ -1,7 +1,8 @@
 import { MaintenanceSummary } from '../schemas/maintenanceSchemas';
 import { Clock, Phone, Wrench, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { TablePagination } from '@/shared/components/ui/TablePagination';
+import { Spinner } from '@/shared/components/ui/Spinner';
+import { useInfiniteScrollTrigger } from '@/shared/hooks/useInfiniteScrollTrigger';
 import { formatCurrency, formatNumber } from '@/shared/utils/currency';
 import { EmptyState } from '@/shared/components/ui/EmptyState';
 import { Avatar } from '@/shared/components/ui/Avatar';
@@ -9,12 +10,10 @@ interface Props {
   tickets: MaintenanceSummary[];
   isLoading: boolean;
   onRowClick: (id: string) => void;
-  pageIndex: number;
-  totalPages: number;
-  totalCount: number;
-  pageSize: number;
-  onNextPage: () => void;
-  onPrevPage: () => void;
+  totalCount?: number;
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
+  onLoadMore?: () => void;
 }
 // Exported so MaintenanceDetailDrawer uses the exact same colors instead of its own
 // copy (tokens.badge.statusPending/Delivered/Returned used to disagree with these).
@@ -78,13 +77,15 @@ export function MaintenanceListTable({
   tickets,
   isLoading,
   onRowClick,
-  pageIndex,
-  totalPages,
   totalCount,
-  pageSize,
-  onNextPage,
-  onPrevPage
+  hasNextPage,
+  isFetchingNextPage,
+  onLoadMore
 }: Props) {
+  const sentinelRef = useInfiniteScrollTrigger(
+    () => onLoadMore?.(),
+    !!hasNextPage && !isLoading && !isFetchingNextPage
+  );
   if (isLoading) {
     return (
       <div className="p-12 text-center text-slate-400">
@@ -280,15 +281,18 @@ export function MaintenanceListTable({
         })}
       </div>
 
-      <TablePagination
-        pageIndex={pageIndex}
-        totalPages={totalPages}
-        totalCount={totalCount}
-        pageSize={pageSize}
-        isLoading={isLoading}
-        onNextPage={onNextPage}
-        onPrevPage={onPrevPage}
-      />
+      <div className="px-4 py-3 border-t border-slate-100 flex flex-col items-center gap-2 text-sm text-gray-500">
+        <span>
+          عرض {tickets.length} من أصل {totalCount ?? tickets.length} تذكرة
+        </span>
+        {isFetchingNextPage && (
+          <div className="flex items-center gap-2 text-gray-400">
+            <Spinner size={16} />
+            جاري تحميل المزيد...
+          </div>
+        )}
+        {hasNextPage && !isFetchingNextPage && <div ref={sentinelRef} className="h-px w-full" />}
+      </div>
     </div>
   );
 }

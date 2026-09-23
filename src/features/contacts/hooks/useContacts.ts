@@ -7,6 +7,7 @@ import {
 } from "../schemas/contactSchemas";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "@/shared/utils/apiError";
+import { useInfiniteResource } from "@/shared/hooks/useInfiniteResource";
 
 export const CONTACT_KEYS = {
   customers: (filters: ContactFilters) => ["customers", filters] as const,
@@ -21,6 +22,13 @@ export function useCustomers(filters: ContactFilters) {
     queryKey: CONTACT_KEYS.customers(filters),
     queryFn: () => contactsRepository.getCustomers(filters),
   });
+}
+
+// Infinite-scroll variant for the customers table (CustomersPage), which lists
+// unboundedly many customers instead of a single fixed page like the dropdown above
+// that shares `useCustomers`.
+export function useInfiniteCustomers(filters: ContactFilters) {
+  return useInfiniteResource(["customers"], (f) => contactsRepository.getCustomers(f), filters);
 }
 
 export function useCustomer(id: string) {

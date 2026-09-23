@@ -14,14 +14,12 @@ import { PurchaseInvoiceResponse } from '../schemas/purchaseSchemas';
 
 export function PurchasesHistoryPage() {
   const navigate = useNavigate();
-  const [pageIndex, setPageIndex] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [supplierId, setSupplierId] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  const { data, isLoading } = usePurchases({
-    pageNumber: pageIndex,
+  const { items, totalCount, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage } = usePurchases({
     pageSize: 10,
     searchValue: searchTerm || undefined,
     supplierId: supplierId || undefined,
@@ -42,9 +40,9 @@ export function PurchasesHistoryPage() {
       </div>
 
       <PurchasesFilters
-        onSearch={(t) => { setSearchTerm(t); setPageIndex(1); }}
-        onSupplierChange={(s) => { setSupplierId(s); setPageIndex(1); }}
-        onDateChange={(start, end) => { setStartDate(start); setEndDate(end); setPageIndex(1); }}
+        onSearch={(t) => setSearchTerm(t)}
+        onSupplierChange={(s) => setSupplierId(s)}
+        onDateChange={(start, end) => { setStartDate(start); setEndDate(end); }}
       />
 
       <div className="flex justify-end">
@@ -79,11 +77,12 @@ export function PurchasesHistoryPage() {
       </div>
 
       <PurchasesTable
-        data={data}
+        data={items}
+        totalCount={totalCount}
         isLoading={isLoading}
-        pageIndex={pageIndex}
-        onNextPage={() => setPageIndex(p => p + 1)}
-        onPrevPage={() => setPageIndex(p => p - 1)}
+        hasNextPage={hasNextPage}
+        isFetchingNextPage={isFetchingNextPage}
+        onLoadMore={() => fetchNextPage()}
         onRowClick={(invoice) => {
           navigate(`/purchases/${invoice.purchaseInvoiceId}`);
         }}

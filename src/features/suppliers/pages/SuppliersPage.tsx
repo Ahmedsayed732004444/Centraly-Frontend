@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useSuppliers, useCreateSupplier, useUpdateSupplier, useDeleteSupplier } from '../hooks/useSuppliers';
+import { useInfiniteSuppliers, useCreateSupplier, useUpdateSupplier, useDeleteSupplier } from '../hooks/useSuppliers';
 import { SupplierResponse, CreateSupplierRequest } from '../schemas/supplierSchemas';
 import { SupplierFilters } from '../components/SupplierFilters';
 import { SuppliersTable } from '../components/SuppliersTable';
@@ -19,7 +19,6 @@ import { formatDateOnly } from '@/shared/utils/date';
 
 export function SuppliersPage() {
   const navigate = useNavigate();
-  const [pageIndex, setPageIndex] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   
   // Drawer state
@@ -32,8 +31,7 @@ export function SuppliersPage() {
   // Payment modal state
   const [supplierToPay, setSupplierToPay] = useState<SupplierResponse | null>(null);
 
-  const { data, isLoading } = useSuppliers({
-    pageNumber: pageIndex,
+  const { items, totalCount, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage } = useInfiniteSuppliers({
     pageSize: 10,
     searchValue: searchTerm || undefined,
   });
@@ -42,10 +40,7 @@ export function SuppliersPage() {
   const updateSupplier = useUpdateSupplier();
   const deleteSupplier = useDeleteSupplier();
 
-  const handleSearchChange = (val: string) => {
-    setSearchTerm(val);
-    setPageIndex(1);
-  };
+  const handleSearchChange = (val: string) => setSearchTerm(val);
 
   const closeDrawer = () => {
     setIsDrawerOpen(false);
@@ -141,11 +136,12 @@ export function SuppliersPage() {
 
       {/* Data table */}
       <SuppliersTable
-        data={data}
+        data={items}
+        totalCount={totalCount}
         isLoading={isLoading}
-        pageIndex={pageIndex}
-        onNextPage={() => setPageIndex((p) => p + 1)}
-        onPrevPage={() => setPageIndex((p) => p - 1)}
+        hasNextPage={hasNextPage}
+        isFetchingNextPage={isFetchingNextPage}
+        onLoadMore={() => fetchNextPage()}
         onEdit={openEditDrawer}
         onDelete={(supplier) => setSupplierToDelete(supplier)}
         onPay={(supplier) => setSupplierToPay(supplier)}

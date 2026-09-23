@@ -1,12 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supplierReturnRepository } from '../api/SupplierReturnApi';
 import { SupplierReturnFilters, CreateSupplierReturnRequest } from '../schemas/supplierReturnSchemas';
+import { useInfiniteResource } from '@/shared/hooks/useInfiniteResource';
 
 export function useSupplierReturns(filters: SupplierReturnFilters) {
-  return useQuery({
-    queryKey: ['supplier-returns', filters],
-    queryFn: () => supplierReturnRepository.getReturns(filters),
-  });
+  return useInfiniteResource(['supplier-returns'], (f) => supplierReturnRepository.getReturns(f), filters);
 }
 
 export function useSupplierReturn(id: string) {

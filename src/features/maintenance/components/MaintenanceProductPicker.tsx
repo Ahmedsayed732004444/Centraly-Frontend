@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Column } from '@/shared/components/ui/DataTable';
 import { PickerModal } from '@/shared/components/ui/PickerModal';
 import { useDebounce } from '@/shared/hooks/useDebounce';
-import { useProducts } from '@/features/inventory/hooks/useInventory';
+import { useInfiniteProducts } from '@/features/inventory/hooks/useInventory';
 import { ProductResponse, ProductUsageDto, getMaintenancePrice } from '@/features/inventory/schemas/inventorySchemas';
 import { formatNumber } from '@/shared/utils/currency';
 
@@ -17,7 +17,6 @@ const PAGE_SIZE = 10;
 
 export function MaintenanceProductPicker({ isOpen, onClose, onAdd, excludeProductIds = [] }: Props) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [pageIndex, setPageIndex] = useState(1);
   const [selectedMap, setSelectedMap] = useState<Map<string, ProductResponse>>(new Map());
 
   const excludedSet = new Set(excludeProductIds);
@@ -28,20 +27,16 @@ export function MaintenanceProductPicker({ isOpen, onClose, onAdd, excludeProduc
   // the API caps page size at 50, so a "fetch everything" approach silently misses any
   // product past the first 50 of each usage bucket. ExcludeUsage=SaleOnly covers both
   // MaintenanceOnly and SaleAndMaintenance products in a single server-side query.
-  const { data, isLoading } = useProducts({
-    pageNumber: pageIndex,
+  const { items: maintenanceProducts, totalCount, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage } = useInfiniteProducts({
     pageSize: PAGE_SIZE,
     searchValue: debouncedSearch || undefined,
     excludeUsage: ProductUsageDto.SaleOnly,
   });
 
-  const maintenanceProducts = data?.items ?? [];
-
   // Reset state when opened
   useEffect(() => {
     if (isOpen) {
       setSearchTerm('');
-      setPageIndex(1);
       setSelectedMap(new Map());
     }
   }, [isOpen]);
@@ -122,20 +117,15 @@ export function MaintenanceProductPicker({ isOpen, onClose, onAdd, excludeProduc
       subtitle="اختر قطع الغيار المطلوبة من المخزن (منتجات الصيانة)"
       searchPlaceholder="ابحث باسم المنتج أو الباركود..."
       searchValue={searchTerm}
-      onSearchChange={(value) => {
-        setSearchTerm(value);
-        setPageIndex(1);
-      }}
+      onSearchChange={(value) => setSearchTerm(value)}
       columns={columns}
       data={maintenanceProducts}
       isLoading={isLoading}
       pagination={{
-        pageIndex,
-        totalPages: data?.totalPages ?? 1,
-        totalCount: data?.totalCount ?? 0,
-        pageSize: PAGE_SIZE,
-        onNextPage: () => setPageIndex((p) => p + 1),
-        onPrevPage: () => setPageIndex((p) => Math.max(1, p - 1)),
+        totalCount,
+        hasNextPage,
+        isFetchingNextPage,
+        onLoadMore: () => fetchNextPage(),
       }}
       onRowClick={toggleProduct}
       selectedCount={selectedMap.size}

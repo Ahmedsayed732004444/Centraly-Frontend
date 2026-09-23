@@ -1,24 +1,25 @@
 import { formatCurrency } from '@/shared/utils/currency';
 import { formatDateTime } from '@/shared/utils/date';
 import { PurchaseInvoiceResponse } from '../schemas/purchaseSchemas';
-import { PaginatedList } from '@/shared/types/pagination';
 import { DataTable } from '@/shared/components/ui/DataTable';
 
 interface PurchasesTableProps {
-  data?: PaginatedList<PurchaseInvoiceResponse>;
+  data: PurchaseInvoiceResponse[];
+  totalCount?: number;
   isLoading: boolean;
-  pageIndex: number;
-  onNextPage: () => void;
-  onPrevPage: () => void;
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
+  onLoadMore?: () => void;
   onRowClick?: (invoice: PurchaseInvoiceResponse) => void;
 }
 
 export function PurchasesTable({
   data,
+  totalCount,
   isLoading,
-  pageIndex,
-  onNextPage,
-  onPrevPage,
+  hasNextPage,
+  isFetchingNextPage,
+  onLoadMore,
   onRowClick,
 }: PurchasesTableProps) {
   const columns = [
@@ -71,14 +72,12 @@ export function PurchasesTable({
   return (
     <DataTable
       columns={columns}
-      data={data?.items || []}
+      data={data}
       isLoading={isLoading}
-      pageIndex={pageIndex}
-      totalPages={data?.totalPages || 1}
-      totalCount={data?.totalCount || 0}
-      pageSize={data?.pageSize || 10}
-      onNextPage={onNextPage}
-      onPrevPage={onPrevPage}
+      totalCount={totalCount}
+      hasNextPage={hasNextPage}
+      isFetchingNextPage={isFetchingNextPage}
+      onLoadMore={onLoadMore}
       onRowClick={onRowClick}
       emptyEntity="فواتير مشتريات"
     />

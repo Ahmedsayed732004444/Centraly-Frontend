@@ -3,9 +3,9 @@ import { salesRepository } from "../api/salesApi";
 import { CreateSalesInvoiceRequest, CreateSalesReturnRequest, SalesInvoiceFilters } from "../schemas/salesSchemas";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "@/shared/utils/apiError";
+import { useInfiniteResource } from "@/shared/hooks/useInfiniteResource";
 
 export const SALES_KEYS = {
-  invoices: (filters: SalesInvoiceFilters) => ["sales-invoices", filters] as const,
   invoiceDetails: (id: string) => ["sales-invoices", id] as const,
 };
 
@@ -25,10 +25,7 @@ export function useCreateSalesInvoice() {
 }
 
 export function useSalesInvoices(filters: SalesInvoiceFilters) {
-  return useQuery({
-    queryKey: SALES_KEYS.invoices(filters),
-    queryFn: () => salesRepository.getInvoices(filters),
-  });
+  return useInfiniteResource(["sales-invoices"], (f) => salesRepository.getInvoices(f), filters);
 }
 
 export function useSalesInvoiceDetails(id: string) {
@@ -54,11 +51,8 @@ export function useCreateSalesReturn() {
   });
 }
 
-export function useSalesReturns(filters: { pageNumber: number; pageSize: number; searchValue?: string; startDate?: string; endDate?: string }) {
-  return useQuery({
-    queryKey: ["sales-returns", filters],
-    queryFn: () => salesRepository.getReturns(filters),
-  });
+export function useSalesReturns(filters: { pageNumber?: number; pageSize?: number; searchValue?: string; startDate?: string; endDate?: string }) {
+  return useInfiniteResource(["sales-returns"], (f) => salesRepository.getReturns(f), filters);
 }
 
 export function useSalesReturnDetails(id: string) {

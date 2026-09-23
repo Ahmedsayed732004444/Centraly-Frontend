@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useCustomers, useCreateCustomer, useUpdateCustomer, useDeleteCustomer } from '../hooks/useContacts';
+import { useInfiniteCustomers, useCreateCustomer, useUpdateCustomer, useDeleteCustomer } from '../hooks/useContacts';
 import { CustomerResponse, CreateCustomerRequest } from '../schemas/contactSchemas';
 import { CustomersFilters } from '../components/CustomersFilters';
 import { CustomersTable } from '../components/CustomersTable';
@@ -19,16 +19,14 @@ export function CustomersPage() {
   const navigate = useNavigate();
   const { hasAnyRole } = useAuth();
   const canExport = hasAnyRole(['Admin', 'Manager']);
-  const [pageIndex, setPageIndex] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [customerToEdit, setCustomerToEdit] = useState<CustomerResponse | undefined>(undefined);
 
   const [customerToDelete, setCustomerToDelete] = useState<CustomerResponse | null>(null);
 
-  const { data, isLoading } = useCustomers({
-    pageNumber: pageIndex,
+  const { items, totalCount, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage } = useInfiniteCustomers({
     pageSize: 10,
     searchValue: searchTerm || undefined,
   });
@@ -37,10 +35,7 @@ export function CustomersPage() {
   const updateCustomer = useUpdateCustomer();
   const deleteCustomer = useDeleteCustomer();
 
-  const handleSearchChange = (val: string) => {
-    setSearchTerm(val);
-    setPageIndex(1);
-  };
+  const handleSearchChange = (val: string) => setSearchTerm(val);
 
   const closeDrawer = () => {
     setIsDrawerOpen(false);
@@ -108,11 +103,12 @@ export function CustomersPage() {
       </div>}
 
       <CustomersTable
-        data={data} 
+        data={items}
+        totalCount={totalCount}
         isLoading={isLoading}
-        pageIndex={pageIndex}
-        onNextPage={() => setPageIndex((p) => p + 1)}
-        onPrevPage={() => setPageIndex((p) => p - 1)}
+        hasNextPage={hasNextPage}
+        isFetchingNextPage={isFetchingNextPage}
+        onLoadMore={() => fetchNextPage()}
         onEdit={(customer) => {
           setCustomerToEdit(customer);
           setIsDrawerOpen(true);

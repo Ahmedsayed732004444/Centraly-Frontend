@@ -12,9 +12,8 @@ import { supplierReturnRepository } from '../api/SupplierReturnApi';
 import { SupplierReturnResponse, RETURN_REASON_LABELS } from '../schemas/supplierReturnSchemas';
 
 export function SupplierReturnsPage() {
-  const [pageIndex, setPageIndex] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   const navigate = useNavigate();
   const { setTitle, setBackButton } = useHeaderStore();
 
@@ -23,8 +22,7 @@ export function SupplierReturnsPage() {
     setBackButton(false);
   }, [setTitle, setBackButton]);
 
-  const { data, isLoading } = useSupplierReturns({
-    pageNumber: pageIndex,
+  const { items, totalCount, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage } = useSupplierReturns({
     pageSize: 10,
     searchValue: searchTerm || undefined,
   });
@@ -32,7 +30,7 @@ export function SupplierReturnsPage() {
   return (
     <div className="space-y-4 w-full">
       <SupplierReturnsFilters
-        onSearch={(val) => { setSearchTerm(val); setPageIndex(1); }}
+        onSearch={(val) => setSearchTerm(val)}
         onNewReturn={() => navigate('/purchases/returns/new')}
       />
 
@@ -60,14 +58,12 @@ export function SupplierReturnsPage() {
       </div>
 
       <SupplierReturnsTable
-        data={data?.items || []}
+        data={items}
         isLoading={isLoading}
-        pageIndex={data?.pageNumber || 1}
-        totalPages={data?.totalPages || 1}
-        totalCount={data?.totalCount || 0}
-        pageSize={data?.pageSize || 10}
-        onNextPage={() => setPageIndex((p) => p + 1)}
-        onPrevPage={() => setPageIndex((p) => p - 1)}
+        totalCount={totalCount}
+        hasNextPage={hasNextPage}
+        isFetchingNextPage={isFetchingNextPage}
+        onLoadMore={() => fetchNextPage()}
         onRowClick={(row) => navigate(`/purchases/returns/${row.supplierReturnId}`)}
       />
     </div>

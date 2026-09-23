@@ -3,11 +3,11 @@ import { inventoryRepository } from "../api/InventoryApi";
 import { ProductFilters, CreateProductRequest } from "../schemas/inventorySchemas";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "@/shared/utils/apiError";
+import { useInfiniteResource } from "@/shared/hooks/useInfiniteResource";
 
 export const INVENTORY_KEYS = {
   categories: ["categories"] as const,
   departments: ["departments"] as const,
-  products: (filters: ProductFilters) => ["products", filters] as const,
   productDetails: (id: string) => ["products", id] as const,
 };
 
@@ -29,10 +29,17 @@ export function useDepartments(filters: ProductFilters = { pageNumber: 1, pageSi
 
 export function useProducts(filters: ProductFilters, options?: { enabled?: boolean }) {
   return useQuery({
-    queryKey: INVENTORY_KEYS.products(filters),
+    queryKey: ["products", filters],
     queryFn: () => inventoryRepository.getProducts(filters),
     ...options,
   });
+}
+
+// Infinite-scroll variant for the products table (ProductsPage), which lists
+// unboundedly many products instead of a single fixed page like the dashboard
+// widgets and picker modals above that share `useProducts`.
+export function useInfiniteProducts(filters: ProductFilters, options?: { enabled?: boolean }) {
+  return useInfiniteResource(["products"], (f) => inventoryRepository.getProducts(f), filters, options);
 }
 
 export function useProduct(id: string) {

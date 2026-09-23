@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useDebounce } from '@/shared/hooks/useDebounce';
-import { useMaintenanceList } from '../api/queries';
+import { useInfiniteMaintenanceList } from '../api/queries';
 import { MaintenanceQuickCreateDrawer } from '../components/MaintenanceQuickCreateDrawer';
 import { MaintenanceDetailDrawer } from '../components/MaintenanceDetailDrawer';
 import { MaintenanceListTable } from '../components/MaintenanceListTable';
@@ -22,12 +22,6 @@ export function MaintenancePage() {
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [searchValue, setSearchValue] = useState<string>('');
   const debouncedSearch = useDebounce(searchValue, 500);
-  const [pageIndex, setPageIndex] = useState(1);
-  // Filtering from page 3, say, used to leave pageIndex at 3 against a freshly
-  // filtered result set that might only have 1 page - showing an empty table.
-  useEffect(() => {
-    setPageIndex(1);
-  }, [statusFilter, debouncedSearch]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   // Deep-linkable so a notification can open a specific ticket directly via
   // /maintenance?ticketId=<id> instead of only through this page's own row click.
@@ -49,16 +43,11 @@ export function MaintenancePage() {
     ticket: MaintenanceResponse;
     mode: 'intake' | 'delivery';
   } | null>(null);
-  const { data, isLoading } = useMaintenanceList({
-    pageNumber: pageIndex,
+  const { items: tickets, totalCount, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage } = useInfiniteMaintenanceList({
     pageSize: 10,
     status: statusFilter || undefined,
     searchValue: debouncedSearch || undefined,
   });
-  const tickets = data?.items || [];
-  const totalCount = data?.totalCount || 0;
-  const totalPages = data?.totalPages || 1;
-  const pageSize = data?.pageSize || 10;
   return (
     <div className="space-y-5">
       {/* Header - no repeated "الصيانة" title here: the shell header (AppLayout) already
@@ -66,7 +55,7 @@ export function MaintenancePage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white rounded-2xl border border-gray-100 shadow-sm px-4 sm:px-6 py-4">
         <div className="flex items-center gap-2 text-gray-500 min-w-0">
           <Wrench className="w-5 h-5 text-blue-600 shrink-0" />
-          <span className="text-sm font-medium whitespace-nowrap">{totalCount} تذكرة صيانة</span>
+          <span className="text-sm font-medium whitespace-nowrap">{totalCount ?? 0} تذكرة صيانة</span>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
           {canExport && <ExportExcelButton
@@ -138,12 +127,10 @@ export function MaintenancePage() {
           tickets={tickets}
           isLoading={isLoading}
           onRowClick={(id) => setSelectedId(id)}
-          pageIndex={pageIndex}
-          totalPages={totalPages}
           totalCount={totalCount}
-          pageSize={pageSize}
-          onNextPage={() => setPageIndex(p => p + 1)}
-          onPrevPage={() => setPageIndex(p => p - 1)}
+          hasNextPage={hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
+          onLoadMore={() => fetchNextPage()}
         />
       </div>
       {}

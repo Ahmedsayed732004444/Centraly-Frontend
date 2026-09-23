@@ -2,7 +2,6 @@ import { Trash2, Package } from 'lucide-react';
 import { DataTable } from '@/shared/components/ui/DataTable';
 import { ProductStatusBadge } from './ProductStatusBadge';
 import { ProductResponse } from '@/features/inventory/schemas/inventorySchemas';
-import { PaginatedList } from '@/shared/types/pagination';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { Permissions } from '@/features/auth/schemas/permissions';
 import { RowActions } from '@/shared/components/ui/RowActions';
@@ -10,21 +9,23 @@ import { EntityImage } from '@/shared/components/ui/EntityImage';
 import { Badge } from '@/shared/components/ui/Badge';
 
 interface ProductsTableProps {
-  data?: PaginatedList<ProductResponse>;
+  data: ProductResponse[];
+  totalCount?: number;
   isLoading: boolean;
-  pageIndex: number;
-  onNextPage: () => void;
-  onPrevPage: () => void;
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
+  onLoadMore?: () => void;
   onDelete?: (product: ProductResponse) => void;
   onRowClick?: (product: ProductResponse) => void;
 }
 
 export function ProductsTable({
   data,
+  totalCount,
   isLoading,
-  pageIndex,
-  onNextPage,
-  onPrevPage,
+  hasNextPage,
+  isFetchingNextPage,
+  onLoadMore,
   onDelete,
   onRowClick,
 }: ProductsTableProps) {
@@ -107,14 +108,12 @@ export function ProductsTable({
   return (
     <DataTable
       columns={columns}
-      data={data?.items || []}
+      data={data}
       isLoading={isLoading}
-      pageIndex={data?.pageNumber || pageIndex}
-      totalPages={data?.totalPages || 1}
-      totalCount={data?.totalCount || 0}
-      pageSize={10}
-      onNextPage={onNextPage}
-      onPrevPage={onPrevPage}
+      totalCount={totalCount}
+      hasNextPage={hasNextPage}
+      isFetchingNextPage={isFetchingNextPage}
+      onLoadMore={onLoadMore}
       onRowClick={onRowClick}
       emptyEntity="منتجات"
     />

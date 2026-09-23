@@ -1,11 +1,13 @@
+import { useState } from 'react';
 import { resolveProductImageUrl } from '../utils/posUtils';
 import { tokens } from '@/shared/styles/tokens';
-import { Search, Package, ShoppingCart, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Search, Package, ShoppingCart, SlidersHorizontal, ChevronDown, X } from 'lucide-react';
 import { ProductResponse, CategorySummary } from '@/features/inventory/schemas/inventorySchemas';
 import { useCategories, useDepartments } from '@/features/inventory/hooks/useInventory';
 import { Spinner } from '@/shared/components/ui/Spinner';
 import { Avatar } from '@/shared/components/ui/Avatar';
 import { EmptyState } from '@/shared/components/ui/EmptyState';
+import { useInfiniteScrollTrigger } from '@/shared/hooks/useInfiniteScrollTrigger';
 interface PosProductGridProps {
   products: ProductResponse[];
   isLoading: boolean;
@@ -16,9 +18,9 @@ interface PosProductGridProps {
   setSelectedDepartmentId: (id: string) => void;
   selectedCategoryId: string;
   setSelectedCategoryId: (id: string) => void;
-  pageNumber: number;
-  setPageNumber: (page: number) => void;
-  totalPages: number;
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
+  onLoadMore?: () => void;
 }
 export function PosProductGrid({
   products,
@@ -30,21 +32,28 @@ export function PosProductGrid({
   setSelectedDepartmentId,
   selectedCategoryId,
   setSelectedCategoryId,
-  pageNumber,
-  setPageNumber,
-  totalPages
+  hasNextPage,
+  isFetchingNextPage,
+  onLoadMore
 }: PosProductGridProps) {
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const hasActiveFilters = Boolean(selectedDepartmentId || selectedCategoryId);
+
+  const sentinelRef = useInfiniteScrollTrigger(
+    () => onLoadMore?.(),
+    !!hasNextPage && !isLoading && !isFetchingNextPage
+  );
   const { data: departmentsData } = useDepartments();
   const { data: categoriesData } = useCategories(selectedDepartmentId || undefined, { pageNumber: 1, pageSize: 50 });
   const departments = departmentsData?.items || [];
   const categories = categoriesData?.items || [];
   return (
     <div className="flex flex-col h-full bg-white border-l border-gray-100">
-      {}
-      <div className="p-3 sm:p-5 bg-white z-10 flex flex-col gap-3 sm:gap-5 border-b border-gray-100">
-        {}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-center">
-          {}
+      {/* Top Search & Filter Bar */}
+      <div className="p-3 sm:p-5 bg-white z-10 flex flex-col gap-2.5 sm:gap-4 border-b border-gray-100">
+        {/* Search Bar + Mobile Filter Toggle / Desktop Department Select */}
+        <div className="flex items-center gap-2 sm:gap-4">
+          {/* Search Input */}
           <div className="relative flex-1 h-11 sm:h-12">
             <input
               type="text"
@@ -63,41 +72,137 @@ export function PosProductGrid({
                 onProductClick(only);
                 setSearchTerm('');
               }}
-              className={`${tokens.input} pl-12 h-full text-sm sm:text-base`}
+              className={`${tokens.input} pl-10 pr-4 sm:pl-12 h-full text-xs sm:text-base placeholder:text-gray-400 placeholder:text-xs sm:placeholder:text-sm`}
               autoFocus
             />
-            {}
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <Search className="absolute left-3.5 sm:left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                aria-label="مسح البحث"
+              >
+                <X size={14} />
+              </button>
+            )}
           </div>
-          {}
-          <div className="relative w-full sm:w-[220px] md:w-[260px] lg:w-[300px] h-11 sm:h-12 shrink-0">
+
+          {/* Mobile Filter Toggle Button */}
+          <button
+            type="button"
+            onClick={() => setIsMobileFiltersOpen((prev) => !prev)}
+            className={`sm:hidden h-11 px-3 rounded-xl border flex items-center justify-center gap-1.5 transition-all text-xs font-bold shrink-0 relative ${
+              isMobileFiltersOpen || hasActiveFilters
+                ? 'bg-[#e6f4ed] text-[#0f8e4c] border-[#0f8e4c] shadow-sm'
+                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+            }`}
+            title="تصفية الأقسام"
+          >
+            <SlidersHorizontal size={16} />
+            <span>فلترة</span>
+            {hasActiveFilters && (
+              <span className="w-2 h-2 rounded-full bg-[#0f8e4c] absolute -top-1 -right-1 ring-2 ring-white" />
+            )}
+          </button>
+
+          {/* Desktop Department Select */}
+          <div className="hidden sm:block relative w-[220px] md:w-[260px] lg:w-[300px] h-12 shrink-0">
             <select
               value={selectedDepartmentId}
               onChange={(e) => {
                 setSelectedDepartmentId(e.target.value);
                 setSelectedCategoryId(''); // Reset category when department changes
               }}
-              className={`${tokens.select} h-full cursor-pointer`}
+              className={`${tokens.select} h-full cursor-pointer appearance-none pl-10 pr-4 text-sm`}
             >
-              <option value="">اختر القسم الرئيسي</option>
+              <option value="">جميع الأقسام الرئيسية</option>
               {departments.map((dept) => (
                 <option key={dept.departmentId} value={dept.departmentId}>
                   {dept.name}
                 </option>
               ))}
             </select>
-            {/* Custom Chevron (as in design, drop down arrow on the left) */}
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-              <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M1 1.5L6 6.5L11 1.5" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
+            <ChevronDown className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400" size={18} />
           </div>
         </div>
-        {/* Categories Chips â€” only show when a department is selected */}
+
+        {/* Mobile Dropdown Filters (Collapsible on mobile) */}
+        {isMobileFiltersOpen && (
+          <div className="sm:hidden flex flex-col gap-2 pt-1 pb-1 border-t border-gray-50">
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1 h-10">
+                <select
+                  value={selectedDepartmentId}
+                  onChange={(e) => {
+                    setSelectedDepartmentId(e.target.value);
+                    setSelectedCategoryId('');
+                  }}
+                  className={`${tokens.select} h-full cursor-pointer appearance-none pl-9 pr-3 text-xs`}
+                >
+                  <option value="">جميع الأقسام الرئيسية</option>
+                  {departments.map((dept) => (
+                    <option key={dept.departmentId} value={dept.departmentId}>
+                      {dept.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400" size={16} />
+              </div>
+
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedDepartmentId('');
+                    setSelectedCategoryId('');
+                  }}
+                  className="h-10 px-2.5 rounded-lg border border-red-200 bg-red-50 text-red-600 text-xs font-medium flex items-center gap-1 shrink-0 hover:bg-red-100 transition-colors"
+                >
+                  <X size={14} />
+                  <span>إلغاء</span>
+                </button>
+              )}
+            </div>
+
+            {/* Mobile Categories Chips — only show when a department is selected */}
+            {selectedDepartmentId && categories.length > 0 && (
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar -mx-3 px-3">
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategoryId('')}
+                  className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-colors border shrink-0 ${
+                    selectedCategoryId === ''
+                      ? 'bg-[#0f8e4c] text-white border-[#0f8e4c] shadow-sm'
+                      : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                  }`}
+                >
+                  الكل
+                </button>
+                {categories.map((cat: CategorySummary) => (
+                  <button
+                    type="button"
+                    key={cat.categoryId}
+                    onClick={() => setSelectedCategoryId(cat.categoryId)}
+                    className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-colors border shrink-0 ${
+                      selectedCategoryId === cat.categoryId
+                        ? 'bg-[#0f8e4c] text-white border-[#0f8e4c] shadow-sm'
+                        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Desktop Categories Chips — only show when a department is selected */}
         {selectedDepartmentId && (
-          <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-1 custom-scrollbar -mx-3 px-3 sm:mx-0 sm:px-0">
+          <div className="hidden sm:flex items-center gap-2 sm:gap-3 overflow-x-auto pb-1 custom-scrollbar -mx-3 px-3 sm:mx-0 sm:px-0">
             <button
+              type="button"
               onClick={() => setSelectedCategoryId('')}
               className={`whitespace-nowrap px-4 sm:px-8 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-colors border shrink-0 ${
                 selectedCategoryId === ''
@@ -109,6 +214,7 @@ export function PosProductGrid({
             </button>
             {categories.map((cat: CategorySummary) => (
               <button
+                type="button"
                 key={cat.categoryId}
                 onClick={() => setSelectedCategoryId(cat.categoryId)}
                 className={`whitespace-nowrap px-4 sm:px-8 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-colors border shrink-0 ${
@@ -213,29 +319,18 @@ export function PosProductGrid({
               })}
             </div>
           )}
+          {!isLoading && products.length > 0 && (
+            <div className="flex flex-col items-center gap-2 pt-4">
+              {isFetchingNextPage && (
+                <div className="flex items-center gap-2 text-gray-400 text-xs sm:text-sm">
+                  <Spinner size={16} />
+                  جاري تحميل المزيد...
+                </div>
+              )}
+              {hasNextPage && !isFetchingNextPage && <div ref={sentinelRef} className="h-px w-full" />}
+            </div>
+          )}
         </div>
-        {}
-        {totalPages > 1 && (
-          <div className="border-t border-gray-100 p-3 sm:p-4 bg-white flex items-center justify-center gap-3 sm:gap-4">
-            <button
-              disabled={pageNumber === 1}
-              onClick={() => setPageNumber(Math.max(1, pageNumber - 1))}
-              className="p-1.5 sm:p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition-colors"
-            >
-              <ChevronRight size={20} />
-            </button>
-            <span className="font-semibold text-gray-700 text-xs sm:text-sm">
-              صفحة {pageNumber} من {totalPages}
-            </span>
-            <button
-              disabled={pageNumber === totalPages}
-              onClick={() => setPageNumber(Math.min(totalPages, pageNumber + 1))}
-              className="p-1.5 sm:p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition-colors"
-            >
-              <ChevronLeft size={20} />
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

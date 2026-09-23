@@ -23,7 +23,10 @@ export function CustomerDetailsPage() {
   const { hasAnyRole } = useAuth();
   const canExport = hasAnyRole(['Admin', 'Manager']);
   const { setTitle, setBackButton } = useHeaderStore();
-  const [pageIndex, setPageIndex] = useState(1);
+  // The statement endpoint returns the full history in one shot - there's no server page to
+  // request. "Loading more" here just reveals more of the already-fetched array as the user
+  // scrolls, instead of slicing it into numbered pages.
+  const [visibleCount, setVisibleCount] = useState(10);
   const [isPaymentDrawerOpen, setIsPaymentDrawerOpen] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentNotes, setPaymentNotes] = useState('');
@@ -43,10 +46,10 @@ export function CustomerDetailsPage() {
     if (filterType === 'سداد مديونية') return item.transactionType === 'Payment' || item.transactionType === 'دفعة';
     return true;
   });
-  const pageSize = 10;
+  const revealStep = 10;
   const totalCount = statementArray.length;
-  const totalPages = Math.ceil(totalCount / pageSize) || 1;
-  const paginatedStatement = statementArray.slice((pageIndex - 1) * pageSize, pageIndex * pageSize);
+  const visibleStatement = statementArray.slice(0, visibleCount);
+  const hasMoreStatement = visibleCount < totalCount;
   useEffect(() => {
     if (customer) {
       setTitle(`كشف حساب: ${customer.name}`);
@@ -103,7 +106,7 @@ export function CustomerDetailsPage() {
               value={filterType}
               onChange={(e) => {
                 setFilterType(e.target.value);
-                setPageIndex(1);
+                setVisibleCount(10);
               }}
               className={tokens.select + ' w-full sm:w-auto'}
             >
@@ -135,14 +138,11 @@ export function CustomerDetailsPage() {
         <div className="p-3 sm:p-5">
           <DataTable
             columns={columns}
-            data={paginatedStatement}
+            data={visibleStatement}
             isLoading={isLoadingStatement}
-            pageIndex={pageIndex}
-            totalPages={totalPages}
             totalCount={totalCount}
-            pageSize={pageSize}
-            onNextPage={() => setPageIndex(p => Math.min(p + 1, totalPages))}
-            onPrevPage={() => setPageIndex(p => Math.max(p - 1, 1))}
+            hasNextPage={hasMoreStatement}
+            onLoadMore={() => setVisibleCount((c) => Math.min(c + revealStep, totalCount))}
             onRowClick={(row) => {
               if (row.transactionType === 'Invoice' || row.transactionType === 'فاتورة') {
                 setSelectedInvoiceId(row.transactionId);
