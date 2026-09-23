@@ -4,7 +4,6 @@ import { SafeTransactionResponse } from '../schemas/financeSchemas';
 import { DRAWER_TRANSACTION_TYPE_LABELS } from '@/shared/utils/enumLabels';
 import { safeTxDirection, directionStyles } from '@/shared/utils/moneyDirection';
 import { DirectionBadge } from '@/shared/components/ui/Badge';
-import { EmptyState } from '@/shared/components/ui/EmptyState';
 import { DataTable } from '@/shared/components/ui/DataTable';
 
 interface SafeTransactionsTableProps {

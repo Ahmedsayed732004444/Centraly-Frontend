@@ -1,7 +1,6 @@
 import { formatCurrency } from '@/shared/utils/currency';
 import { formatDateTime } from '@/shared/utils/date';
 import { ExpenseResponse } from '../schemas/financeSchemas';
-import { EmptyState } from '@/shared/components/ui/EmptyState';
 import { Badge } from '@/shared/components/ui/Badge';
 import { DataTable } from '@/shared/components/ui/DataTable';
 

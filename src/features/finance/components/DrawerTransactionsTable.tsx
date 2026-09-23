@@ -3,7 +3,6 @@ import { formatDateTime } from '@/shared/utils/date';
 import { DrawerTransactionResponse } from '../schemas/financeSchemas';
 import { drawerTxDirection, directionStyles } from '@/shared/utils/moneyDirection';
 import { DirectionBadge } from '@/shared/components/ui/Badge';
-import { EmptyState } from '@/shared/components/ui/EmptyState';
 import { formatDrawerNotes } from '../utils/formatDrawerNotes';
 
 import { DataTable } from '@/shared/components/ui/DataTable';
