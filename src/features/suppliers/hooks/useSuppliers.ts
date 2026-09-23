@@ -3,6 +3,7 @@ import { supplierRepository } from "../api/SupplierApi";
 import { SupplierFilters, CreateSupplierRequest, UpdateSupplierRequest } from "../schemas/supplierSchemas";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "@/shared/utils/apiError";
+import { useInfiniteResource } from "@/shared/hooks/useInfiniteResource";
 
 export const SUPPLIER_KEYS = {
   suppliers: (filters: SupplierFilters) => ["suppliers", filters] as const,
@@ -16,6 +17,13 @@ export function useSuppliers(filters: SupplierFilters) {
     queryKey: SUPPLIER_KEYS.suppliers(filters),
     queryFn: () => supplierRepository.getSuppliers(filters),
   });
+}
+
+// Infinite-scroll variant for the suppliers table (SuppliersPage), which lists
+// unboundedly many suppliers instead of a single fixed page like the dropdowns above
+// that share `useSuppliers`.
+export function useInfiniteSuppliers(filters: SupplierFilters) {
+  return useInfiniteResource(["suppliers"], (f) => supplierRepository.getSuppliers(f), filters);
 }
 
 export function useSupplierDetails(id: string) {

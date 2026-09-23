@@ -3,7 +3,7 @@ import { tokens } from '@/shared/styles/tokens';
 import { Column } from '@/shared/components/ui/DataTable';
 import { PickerModal } from '@/shared/components/ui/PickerModal';
 import { useDebounce } from '@/shared/hooks/useDebounce';
-import { useProducts, useCategories, useDepartments } from '@/features/inventory/hooks/useInventory';
+import { useInfiniteProducts, useCategories, useDepartments } from '@/features/inventory/hooks/useInventory';
 import { ProductResponse } from '@/features/inventory/schemas/inventorySchemas';
 
 interface ProductPickerModalProps {
@@ -24,14 +24,12 @@ export function ProductPickerModal({
   const [searchTerm, setSearchTerm] = useState('');
   const [departmentId, setDepartmentId] = useState('');
   const [categoryId, setCategoryId] = useState('');
-  const [pageIndex, setPageIndex] = useState(1);
   const [selectedMap, setSelectedMap] = useState<Map<string, ProductResponse>>(new Map());
 
   const debouncedSearch = useDebounce(searchTerm, 400);
   const excludedSet = new Set(excludeProductIds);
 
-  const { data, isLoading } = useProducts({
-    pageNumber: pageIndex,
+  const { items: products, totalCount, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage } = useInfiniteProducts({
     pageSize: PAGE_SIZE,
     searchValue: debouncedSearch || undefined,
     departmentId: departmentId || undefined,
@@ -41,7 +39,6 @@ export function ProductPickerModal({
   const { data: departmentsData } = useDepartments();
   const { data: categoriesData } = useCategories();
 
-  const products = data?.items ?? [];
   const departments = departmentsData?.items ?? [];
   const categories = categoriesData?.items ?? [];
 
@@ -50,7 +47,6 @@ export function ProductPickerModal({
     setSearchTerm('');
     setDepartmentId('');
     setCategoryId('');
-    setPageIndex(1);
     setSelectedMap(new Map());
   }, [isOpen]);
 
@@ -123,10 +119,7 @@ export function ProductPickerModal({
       subtitle="ابحث أو فلتر ثم حدد المنتجات المطلوبة"
       searchPlaceholder="ابحث باسم المنتج أو الباركود..."
       searchValue={searchTerm}
-      onSearchChange={(value) => {
-        setSearchTerm(value);
-        setPageIndex(1);
-      }}
+      onSearchChange={(value) => setSearchTerm(value)}
       filters={
         <>
           <select
@@ -134,7 +127,6 @@ export function ProductPickerModal({
             onChange={(e) => {
               setDepartmentId(e.target.value);
               setCategoryId('');
-              setPageIndex(1);
             }}
             className={tokens.select}
           >
@@ -147,10 +139,7 @@ export function ProductPickerModal({
           </select>
           <select
             value={categoryId}
-            onChange={(e) => {
-              setCategoryId(e.target.value);
-              setPageIndex(1);
-            }}
+            onChange={(e) => setCategoryId(e.target.value)}
             className={tokens.select}
           >
             <option value="">الأقسام الفرعية</option>
@@ -168,12 +157,10 @@ export function ProductPickerModal({
       data={products}
       isLoading={isLoading}
       pagination={{
-        pageIndex,
-        totalPages: data?.totalPages ?? 1,
-        totalCount: data?.totalCount ?? 0,
-        pageSize: PAGE_SIZE,
-        onNextPage: () => setPageIndex((p) => p + 1),
-        onPrevPage: () => setPageIndex((p) => Math.max(1, p - 1)),
+        totalCount,
+        hasNextPage,
+        isFetchingNextPage,
+        onLoadMore: () => fetchNextPage(),
       }}
       onRowClick={toggleProduct}
       selectedCount={selectedMap.size}

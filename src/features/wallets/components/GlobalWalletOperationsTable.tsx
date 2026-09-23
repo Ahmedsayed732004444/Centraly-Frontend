@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { useGlobalWalletOperations } from '../hooks/useGlobalWalletOperations';
 import { useWallets } from '../hooks/useWallets';
-import { ArrowDownToLine, ArrowUpFromLine, ChevronLeft, ChevronRight, Filter, TrendingUp, Smartphone } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpFromLine, Filter, TrendingUp, Smartphone } from 'lucide-react';
 import { formatDateTime, toUtcStartOfDayISOString, toUtcEndOfDayISOString } from '@/shared/utils/date';
 import { formatNumber } from '@/shared/utils/currency';
 import { WalletOperationType, WalletOperationResponse } from '../schemas/walletSchemas';
 import { walletOpLabels } from '../utils/walletOpLabels';
 import { Badge } from '@/shared/components/ui/Badge';
 import { EmptyState } from '@/shared/components/ui/EmptyState';
+import { Spinner } from '@/shared/components/ui/Spinner';
+import { useInfiniteScrollTrigger } from '@/shared/hooks/useInfiniteScrollTrigger';
 import { DateRangeFilter } from '@/shared/components/ui/DateRangeFilter';
 import { ExportExcelButton } from '@/shared/components/ui/ExportExcelButton';
 import { exportToExcel } from '@/shared/utils/exportToExcel';
@@ -21,20 +23,23 @@ const walletOpIcons: Record<WalletOperationType, typeof Smartphone> = {
 };
 
 export function GlobalWalletOperationsTable() {
-  const [pageNumber, setPageNumber] = useState(1);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [operationType, setOperationType] = useState<WalletOperationType | ''>('');
   const [walletId, setWalletId] = useState('');
   const { wallets } = useWallets();
 
-  const { operations, totalPages, isLoadingOperations, totalProfit } = useGlobalWalletOperations({
-    pageNumber,
+  const { operations, totalCount, isLoadingOperations, hasNextPage, isFetchingNextPage, fetchNextPage, totalProfit } = useGlobalWalletOperations({
     dateFrom: dateFrom ? toUtcStartOfDayISOString(dateFrom) : undefined,
     dateTo: dateTo ? toUtcEndOfDayISOString(dateTo) : undefined,
     operationType: operationType !== '' ? operationType : undefined,
     walletId: walletId || undefined
   });
+
+  const sentinelRef = useInfiniteScrollTrigger(
+    () => fetchNextPage(),
+    !!hasNextPage && !isLoadingOperations && !isFetchingNextPage
+  );
 
   const isProfitable = totalProfit >= 0;
 
@@ -64,7 +69,7 @@ export function GlobalWalletOperationsTable() {
               <Filter size={16} className="text-gray-400 shrink-0" />
               <select
                 value={walletId}
-                onChange={e => { setWalletId(e.target.value); setPageNumber(1); }}
+                onChange={e => setWalletId(e.target.value)}
                 className="bg-transparent border-none text-sm focus:ring-0 text-gray-600 py-0 w-full"
               >
                 <option value="">كل المحافظ</option>
@@ -77,7 +82,7 @@ export function GlobalWalletOperationsTable() {
               <Filter size={16} className="text-gray-400 shrink-0" />
               <select
                 value={operationType}
-                onChange={e => { setOperationType(e.target.value ? Number(e.target.value) : ''); setPageNumber(1); }}
+                onChange={e => setOperationType(e.target.value ? Number(e.target.value) : '')}
                 className="bg-transparent border-none text-sm focus:ring-0 text-gray-600 py-0 w-full"
               >
                 <option value="">كل العمليات</option>
@@ -89,7 +94,7 @@ export function GlobalWalletOperationsTable() {
             <DateRangeFilter
               startDate={dateFrom}
               endDate={dateTo}
-              onChange={(start, end) => { setDateFrom(start); setDateTo(end); setPageNumber(1); }}
+              onChange={(start, end) => { setDateFrom(start); setDateTo(end); }}
             />
           </div>
           <ExportExcelButton
@@ -165,25 +170,18 @@ export function GlobalWalletOperationsTable() {
             </table>
           </div>
         )}
-        {totalPages > 1 && (
-          <div className="border-t border-gray-100 p-4 bg-white flex items-center justify-center gap-4">
-            <button
-              disabled={pageNumber === 1}
-              onClick={() => setPageNumber(p => Math.max(1, p - 1))}
-              className="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition-colors"
-            >
-              <ChevronRight size={20} />
-            </button>
-            <span className="font-semibold text-gray-700 text-sm">
-              صفحة {pageNumber} من {totalPages}
+        {!isLoadingOperations && operations.length > 0 && (
+          <div className="border-t border-gray-100 p-4 bg-white flex flex-col items-center gap-2 text-sm text-gray-500">
+            <span>
+              عرض {operations.length} من أصل {totalCount} عملية
             </span>
-            <button
-              disabled={pageNumber === totalPages}
-              onClick={() => setPageNumber(p => Math.min(totalPages, p + 1))}
-              className="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition-colors"
-            >
-              <ChevronLeft size={20} />
-            </button>
+            {isFetchingNextPage && (
+              <div className="flex items-center gap-2 text-gray-400">
+                <Spinner size={16} />
+                جاري تحميل المزيد...
+              </div>
+            )}
+            {hasNextPage && !isFetchingNextPage && <div ref={sentinelRef} className="h-px w-full" />}
           </div>
         )}
       </div>

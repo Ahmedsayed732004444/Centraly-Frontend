@@ -1,5 +1,4 @@
 ﻿import { CustomerResponse } from '../schemas/contactSchemas';
-import { PaginatedList } from '@/shared/types/pagination';
 import { DataTable } from '@/shared/components/ui/DataTable';
 import { formatCurrency } from '@/shared/utils/currency';
 import { formatDateOnly } from '@/shared/utils/date';
@@ -9,21 +8,23 @@ import { Permissions } from '@/features/auth/schemas/permissions';
 import { RowActions } from '@/shared/components/ui/RowActions';
 import { Avatar } from '@/shared/components/ui/Avatar';
 interface CustomersTableProps {
-  data?: PaginatedList<CustomerResponse>;
+  data: CustomerResponse[];
+  totalCount?: number;
   isLoading: boolean;
-  pageIndex: number;
-  onNextPage: () => void;
-  onPrevPage: () => void;
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
+  onLoadMore?: () => void;
   onEdit: (customer: CustomerResponse) => void;
   onDelete: (customer: CustomerResponse) => void;
   onRowClick: (customer: CustomerResponse) => void;
 }
 export function CustomersTable({
   data,
+  totalCount,
   isLoading,
-  pageIndex,
-  onNextPage,
-  onPrevPage,
+  hasNextPage,
+  isFetchingNextPage,
+  onLoadMore,
   onEdit,
   onDelete,
   onRowClick
@@ -73,14 +74,12 @@ export function CustomersTable({
   return (
     <DataTable
       columns={columns}
-      data={data?.items || []}
+      data={data}
       isLoading={isLoading}
-      pageIndex={pageIndex}
-      totalPages={data?.totalPages || 1}
-      totalCount={data?.totalCount || 0}
-      pageSize={data?.pageSize || 10}
-      onNextPage={onNextPage}
-      onPrevPage={onPrevPage}
+      totalCount={totalCount}
+      hasNextPage={hasNextPage}
+      isFetchingNextPage={isFetchingNextPage}
+      onLoadMore={onLoadMore}
       onRowClick={onRowClick}
       emptyEntity="عملاء"
     />

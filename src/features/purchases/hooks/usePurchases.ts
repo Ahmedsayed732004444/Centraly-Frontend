@@ -1,17 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { purchaseRepository } from "../api/PurchaseApi";
 import { CreatePurchaseInvoiceRequest, PurchaseFilters } from "../schemas/purchaseSchemas";
+import { useInfiniteResource } from "@/shared/hooks/useInfiniteResource";
 
 export const PURCHASE_KEYS = {
-  purchases: (filters: PurchaseFilters) => ["purchases", filters] as const,
   purchaseDetails: (id: string) => ["purchases", id] as const,
 };
 
 export function usePurchases(filters: PurchaseFilters) {
-  return useQuery({
-    queryKey: PURCHASE_KEYS.purchases(filters),
-    queryFn: () => purchaseRepository.getPurchases(filters),
-  });
+  return useInfiniteResource(["purchases"], (f) => purchaseRepository.getPurchases(f), filters);
 }
 
 export function usePurchaseInvoice(id: string) {

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { walletApi } from "../api/WalletApi";
 import { WalletOperationFilter } from "../schemas/walletSchemas";
+import { useInfiniteResource } from "@/shared/hooks/useInfiniteResource";
 
 export function useWalletDetails(walletId: string, filter: WalletOperationFilter) {
   const detailsQuery = useQuery({
@@ -9,19 +10,22 @@ export function useWalletDetails(walletId: string, filter: WalletOperationFilter
     enabled: !!walletId,
   });
 
-  const operationsQuery = useQuery({
-    queryKey: ["wallet-operations", walletId, filter],
-    queryFn: () => walletApi.getWalletOperations({ ...filter, walletId }),
-    enabled: !!walletId,
-  });
+  const operationsQuery = useInfiniteResource(
+    ["wallet-operations", walletId],
+    (f) => walletApi.getWalletOperations({ ...f, walletId }),
+    filter,
+    { enabled: !!walletId }
+  );
 
   return {
     wallet: detailsQuery.data,
     isLoadingWallet: detailsQuery.isLoading,
-    
-    operations: operationsQuery.data?.items ?? [],
-    totalPages: operationsQuery.data?.totalPages ?? 1,
-    totalCount: operationsQuery.data?.totalCount ?? 0,
+
+    operations: operationsQuery.items,
+    totalCount: operationsQuery.totalCount ?? 0,
+    hasNextPage: operationsQuery.hasNextPage,
+    isFetchingNextPage: operationsQuery.isFetchingNextPage,
+    fetchNextPage: operationsQuery.fetchNextPage,
     isLoadingOperations: operationsQuery.isLoading,
   };
 }

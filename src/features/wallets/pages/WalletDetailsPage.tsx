@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useWalletDetails } from '../hooks/useWalletDetails';
 import { useHeaderStore } from '@/shared/hooks/useHeaderStore';
-import { Wallet, ArrowDownToLine, ArrowUpFromLine, ChevronLeft, ChevronRight, TrendingUp, Filter, Smartphone } from 'lucide-react';
+import { Wallet, ArrowDownToLine, ArrowUpFromLine, TrendingUp, Filter, Smartphone } from 'lucide-react';
 import { formatDateTime, toUtcStartOfDayISOString, toUtcEndOfDayISOString } from '@/shared/utils/date';
 import { formatNumber } from '@/shared/utils/currency';
 import { resolveImageUrl } from '@/shared/utils/resolveImageUrl';
@@ -10,6 +10,8 @@ import { WalletOperationType, WalletOperationResponse } from '../schemas/walletS
 import { walletOpLabels } from '../utils/walletOpLabels';
 import { Badge } from '@/shared/components/ui/Badge';
 import { EmptyState } from '@/shared/components/ui/EmptyState';
+import { Spinner } from '@/shared/components/ui/Spinner';
+import { useInfiniteScrollTrigger } from '@/shared/hooks/useInfiniteScrollTrigger';
 import { DateRangeFilter } from '@/shared/components/ui/DateRangeFilter';
 
 const walletOpIcons: Record<WalletOperationType, typeof Smartphone> = {
@@ -20,16 +22,18 @@ const walletOpIcons: Record<WalletOperationType, typeof Smartphone> = {
 export function WalletDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const { setTitle, setBackButton } = useHeaderStore();
-  const [pageNumber, setPageNumber] = useState(1);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [operationType, setOperationType] = useState<WalletOperationType | ''>('');
-  const { wallet, isLoadingWallet, operations, totalPages, isLoadingOperations } = useWalletDetails(id || '', {
-    pageNumber,
+  const { wallet, isLoadingWallet, operations, totalCount, isLoadingOperations, hasNextPage, isFetchingNextPage, fetchNextPage } = useWalletDetails(id || '', {
     dateFrom: dateFrom ? toUtcStartOfDayISOString(dateFrom) : undefined,
     dateTo: dateTo ? toUtcEndOfDayISOString(dateTo) : undefined,
     operationType: operationType !== '' ? operationType : undefined
   });
+  const sentinelRef = useInfiniteScrollTrigger(
+    () => fetchNextPage(),
+    !!hasNextPage && !isLoadingOperations && !isFetchingNextPage
+  );
   useEffect(() => {
     setTitle('تفاصيل المحفظة');
     setBackButton(true, '/settings/wallets');
@@ -93,10 +97,7 @@ export function WalletDetailsPage() {
               <Filter size={16} className="text-gray-400 shrink-0" />
               <select
                 value={operationType}
-                onChange={e => {
-                  setOperationType(e.target.value ? Number(e.target.value) : '');
-                  setPageNumber(1);
-                }}
+                onChange={e => setOperationType(e.target.value ? Number(e.target.value) : '')}
                 className="bg-transparent border-none text-sm focus:ring-0 text-gray-600 py-0 w-full"
               >
                 <option value="">كل العمليات</option>
@@ -108,7 +109,7 @@ export function WalletDetailsPage() {
             <DateRangeFilter
               startDate={dateFrom}
               endDate={dateTo}
-              onChange={(start, end) => { setDateFrom(start); setDateTo(end); setPageNumber(1); }}
+              onChange={(start, end) => { setDateFrom(start); setDateTo(end); }}
             />
           </div>
         </div>
@@ -153,25 +154,18 @@ export function WalletDetailsPage() {
             </table>
           </div>
         )}
-        {totalPages > 1 && (
-          <div className="border-t border-gray-100 p-4 bg-white flex items-center justify-center gap-4">
-            <button
-              disabled={pageNumber === 1}
-              onClick={() => setPageNumber(p => Math.max(1, p - 1))}
-              className="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition-colors"
-            >
-              <ChevronRight size={20} />
-            </button>
-            <span className="font-semibold text-gray-700 text-sm">
-              صفحة {pageNumber} من {totalPages}
+        {!isLoadingOperations && operations.length > 0 && (
+          <div className="border-t border-gray-100 p-4 bg-white flex flex-col items-center gap-2 text-sm text-gray-500">
+            <span>
+              عرض {operations.length} من أصل {totalCount} عملية
             </span>
-            <button
-              disabled={pageNumber === totalPages}
-              onClick={() => setPageNumber(p => Math.min(totalPages, p + 1))}
-              className="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition-colors"
-            >
-              <ChevronLeft size={20} />
-            </button>
+            {isFetchingNextPage && (
+              <div className="flex items-center gap-2 text-gray-400">
+                <Spinner size={16} />
+                جاري تحميل المزيد...
+              </div>
+            )}
+            {hasNextPage && !isFetchingNextPage && <div ref={sentinelRef} className="h-px w-full" />}
           </div>
         )}
       </div>

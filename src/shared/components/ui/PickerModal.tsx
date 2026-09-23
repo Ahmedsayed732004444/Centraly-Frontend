@@ -5,12 +5,10 @@ import { BaseModal } from './BaseModal';
 import { DataTable, Column } from './DataTable';
 
 interface PickerModalPagination {
-  pageIndex: number;
-  totalPages: number;
-  totalCount: number;
-  pageSize: number;
-  onNextPage: () => void;
-  onPrevPage: () => void;
+  totalCount?: number;
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
+  onLoadMore: () => void;
 }
 
 export interface PickerModalProps<T> {
@@ -97,12 +95,10 @@ export function PickerModal<T>({
           columns={columns}
           data={data}
           isLoading={isLoading}
-          pageIndex={pagination.pageIndex}
-          totalPages={pagination.totalPages}
           totalCount={pagination.totalCount}
-          pageSize={pagination.pageSize}
-          onNextPage={pagination.onNextPage}
-          onPrevPage={pagination.onPrevPage}
+          hasNextPage={pagination.hasNextPage}
+          isFetchingNextPage={pagination.isFetchingNextPage}
+          onLoadMore={pagination.onLoadMore}
           onRowClick={onRowClick}
         />
       </div>

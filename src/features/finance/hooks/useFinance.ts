@@ -8,10 +8,10 @@ import {
   FinanceFilters 
 } from "../schemas/financeSchemas";
 import { toast } from "sonner";
+import { useInfiniteResource } from "@/shared/hooks/useInfiniteResource";
 
 export const FINANCE_KEYS = {
   activeDrawer: (type: number) => ["drawer", "active", type] as const,
-  drawerHistory: (filters: FinanceFilters) => ["drawer", "history", filters] as const,
   drawerSessionById: (id: string) => ["drawer", "history", id] as const,
   safes: ["safes"] as const,
   safeTransactions: (safeId: string, filters: FinanceFilters) => ["safes", safeId, "transactions", filters] as const,
@@ -29,10 +29,7 @@ export function useActiveDrawer(type: number = 1) {
 }
 
 export function useDrawerHistory(filters: FinanceFilters) {
-  return useQuery({
-    queryKey: FINANCE_KEYS.drawerHistory(filters),
-    queryFn: () => financeRepository.getDrawerHistory(filters),
-  });
+  return useInfiniteResource(["drawer", "history"], (f) => financeRepository.getDrawerHistory(f), filters);
 }
 
 export function useDrawerSessionById(id: string) {

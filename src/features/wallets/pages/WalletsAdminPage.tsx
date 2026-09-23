@@ -55,8 +55,11 @@ export function WalletsAdminPage() {
   const [activeTab, setActiveTab] = useState<'list' | 'history'>('list');
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(getPinnedIds);
 
-  const [pageIndex, setPageIndex] = useState(1);
+  // useWallets() fetches every wallet in one shot - there's no server page to request.
+  // "Loading more" here just reveals more of the already-fetched array as the user
+  // scrolls, in chunks of `pageSize` (still user-selectable via the toolbar below).
   const [pageSize, setPageSize] = useState(10);
+  const [visibleCount, setVisibleCount] = useState(10);
 
   useEffect(() => {
     setTitle('إدارة المحافظ');
@@ -195,8 +198,8 @@ export function WalletsAdminPage() {
   );
 
   const totalCount = wallets.length;
-  const totalPages = Math.ceil(totalCount / pageSize);
-  const paginatedWallets = wallets.slice((pageIndex - 1) * pageSize, pageIndex * pageSize);
+  const visibleWallets = wallets.slice(0, visibleCount);
+  const hasMoreWallets = visibleCount < totalCount;
 
   const totalBalance = wallets.reduce((sum, w) => sum + (w.balance || 0), 0);
   const pinnedCount = wallets.filter(w => pinnedIds.has(w.id)).length;
@@ -358,8 +361,9 @@ export function WalletsAdminPage() {
               <select
                 value={pageSize}
                 onChange={(e) => {
-                  setPageSize(Number(e.target.value));
-                  setPageIndex(1);
+                  const size = Number(e.target.value);
+                  setPageSize(size);
+                  setVisibleCount(size);
                 }}
                 className={tokens.input + " py-1.5 px-3 min-h-0 text-sm"}
                 style={{ width: '80px' }}
@@ -382,14 +386,11 @@ export function WalletsAdminPage() {
 
           <DataTable
             columns={columns}
-            data={paginatedWallets}
+            data={visibleWallets}
             isLoading={isLoading}
-            pageIndex={pageIndex}
-            totalPages={totalPages}
             totalCount={totalCount}
-            pageSize={pageSize}
-            onNextPage={() => setPageIndex((p) => p + 1)}
-            onPrevPage={() => setPageIndex((p) => p - 1)}
+            hasNextPage={hasMoreWallets}
+            onLoadMore={() => setVisibleCount((c) => Math.min(c + pageSize, totalCount))}
             emptyEntity="محافظ"
           />
         </>

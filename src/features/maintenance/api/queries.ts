@@ -3,6 +3,7 @@ import { maintenanceApi, MaintenanceFilters } from './MaintenanceApi';
 import { CreateMaintenanceRequest, UpdateMaintenanceRequest } from '../schemas/maintenanceSchemas';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/shared/utils/apiError';
+import { useInfiniteResource } from '@/shared/hooks/useInfiniteResource';
 
 export const maintenanceKeys = {
   all: ['maintenance'] as const,
@@ -18,6 +19,13 @@ export function useMaintenanceList(filters?: MaintenanceFilters, options?: { ena
     queryFn: () => maintenanceApi.getAll(filters),
     ...options,
   });
+}
+
+// Infinite-scroll variant for the maintenance tickets table (MaintenancePage), which lists
+// unboundedly many tickets instead of a single fixed page like the dashboard widget above
+// that shares `useMaintenanceList`.
+export function useInfiniteMaintenanceList(filters: MaintenanceFilters, options?: { enabled?: boolean }) {
+  return useInfiniteResource(maintenanceKeys.lists(), (f) => maintenanceApi.getAll(f), filters, options);
 }
 
 export function useMaintenanceDetail(id: string | null) {

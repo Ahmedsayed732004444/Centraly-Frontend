@@ -5,7 +5,7 @@ import { Plus } from 'lucide-react';
 import { HasPermission } from '@/features/auth/components/HasPermission';
 import { Permissions } from '@/features/auth/schemas/permissions';
 import { createProductSchema, CreateProductRequest } from '../schemas/inventorySchemas';
-import { useProducts, useCreateProduct, useDeleteProduct } from '@/features/inventory/hooks/useInventory';
+import { useInfiniteProducts, useCreateProduct, useDeleteProduct } from '@/features/inventory/hooks/useInventory';
 import { RightDrawer } from '@/shared/components/ui/RightDrawer';
 import { ConfirmModal } from '@/shared/components/ui/ConfirmModal';
 import { ProductFilters } from '@/features/inventory/components/ProductFilters';
@@ -26,20 +26,18 @@ const USAGE_LABELS: Record<number, string> = { 1: 'بيع فقط', 2: 'صيان�
  * Responsible only for: state management + data fetching + event wiring.
  */
 export function ProductsPage() {
-  const [pageIndex, setPageIndex]         = useState(1);
   const [searchTerm, setSearchTerm]       = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [stockFilter, setStockFilter]       = useState('');
   const [usageFilter, setUsageFilter]       = useState('');
   const [isDrawerOpen, setIsDrawerOpen]   = useState(false);
-  
+
   const [productToDelete, setProductToDelete] = useState<ProductResponse | null>(null);
 
   const navigate                          = useNavigate();
 
-  const { data, isLoading }  = useProducts({
-    pageNumber: pageIndex,
+  const { items, totalCount, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage } = useInfiniteProducts({
     pageSize: 10,
     searchValue: searchTerm || undefined,
     departmentId: departmentFilter || undefined,
@@ -52,31 +50,20 @@ export function ProductsPage() {
 
   const closeDrawer = () => setIsDrawerOpen(false);
 
-  const handleSearchChange = (val: string) => {
-    setSearchTerm(val);
-    setPageIndex(1);
-  };
+  // Changing a filter starts a fresh set of pages automatically (it's part of the
+  // query key), so these handlers just need to update the filter state.
+  const handleSearchChange = (val: string) => setSearchTerm(val);
 
   const handleDepartmentChange = (val: string) => {
     setDepartmentFilter(val);
     setCategoryFilter('');
-    setPageIndex(1);
   };
 
-  const handleCategoryChange = (val: string) => {
-    setCategoryFilter(val);
-    setPageIndex(1);
-  };
+  const handleCategoryChange = (val: string) => setCategoryFilter(val);
 
-  const handleStockChange = (val: string) => {
-    setStockFilter(val);
-    setPageIndex(1);
-  };
+  const handleStockChange = (val: string) => setStockFilter(val);
 
-  const handleUsageChange = (val: string) => {
-    setUsageFilter(val);
-    setPageIndex(1);
-  };
+  const handleUsageChange = (val: string) => setUsageFilter(val);
 
   const handleDeleteConfirm = () => {
     if (productToDelete) {
@@ -196,11 +183,12 @@ export function ProductsPage() {
 
       {/* Data table */}
       <ProductsTable
-        data={data}
+        data={items}
+        totalCount={totalCount}
         isLoading={isLoading}
-        pageIndex={pageIndex}
-        onNextPage={() => setPageIndex((p) => p + 1)}
-        onPrevPage={() => setPageIndex((p) => p - 1)}
+        hasNextPage={hasNextPage}
+        isFetchingNextPage={isFetchingNextPage}
+        onLoadMore={() => fetchNextPage()}
         onRowClick={(row) => navigate(`/inventory/products/${row.productId}`)}
         onDelete={(row) => setProductToDelete(row)}
       />

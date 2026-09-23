@@ -90,12 +90,7 @@ export function OwnerTransactionsPage() {
         <DataTable
           columns={columns}
           data={Array.isArray(transactions) ? transactions : ((transactions as any)?.items || [])}
-          pageIndex={1}
-          totalPages={1}
           totalCount={Array.isArray(transactions) ? transactions.length : ((transactions as any)?.totalCount || 0)}
-          pageSize={transactions?.length || 50}
-          onNextPage={() => {}}
-          onPrevPage={() => {}}
           emptyEntity="معاملات مالك"
         />
       </div>

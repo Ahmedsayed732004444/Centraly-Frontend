@@ -2,17 +2,17 @@
 import { Trash2, Edit, CreditCard } from 'lucide-react';
 import { DataTable } from '@/shared/components/ui/DataTable';
 import { SupplierResponse } from '../schemas/supplierSchemas';
-import { PaginatedList } from '@/shared/types/pagination';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { Permissions } from '@/features/auth/schemas/permissions';
 import { RowActions } from '@/shared/components/ui/RowActions';
 import { Avatar } from '@/shared/components/ui/Avatar';
 interface SuppliersTableProps {
-  data?: PaginatedList<SupplierResponse>;
+  data: SupplierResponse[];
+  totalCount?: number;
   isLoading: boolean;
-  pageIndex: number;
-  onNextPage: () => void;
-  onPrevPage: () => void;
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
+  onLoadMore?: () => void;
   onEdit?: (supplier: SupplierResponse) => void;
   onDelete?: (supplier: SupplierResponse) => void;
   onPay?: (supplier: SupplierResponse) => void;
@@ -20,10 +20,11 @@ interface SuppliersTableProps {
 }
 export function SuppliersTable({
   data,
+  totalCount,
   isLoading,
-  pageIndex,
-  onNextPage,
-  onPrevPage,
+  hasNextPage,
+  isFetchingNextPage,
+  onLoadMore,
   onEdit,
   onDelete,
   onPay,
@@ -94,14 +95,12 @@ export function SuppliersTable({
   return (
     <DataTable
       columns={columns}
-      data={data?.items || []}
+      data={data}
       isLoading={isLoading}
-      pageIndex={data?.pageNumber || pageIndex}
-      totalPages={data?.totalPages || 1}
-      totalCount={data?.totalCount || 0}
-      pageSize={10}
-      onNextPage={onNextPage}
-      onPrevPage={onPrevPage}
+      totalCount={totalCount}
+      hasNextPage={hasNextPage}
+      isFetchingNextPage={isFetchingNextPage}
+      onLoadMore={onLoadMore}
       onRowClick={onRowClick}
       emptyEntity="موردين"
     />

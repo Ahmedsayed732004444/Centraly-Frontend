@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useHeaderStore } from '@/shared/hooks/useHeaderStore';
 import { useDebounce } from '@/shared/hooks/useDebounce';
-import { useProducts } from '@/features/inventory/hooks/useInventory';
+import { useInfiniteProducts } from '@/features/inventory/hooks/useInventory';
 import { ProductResponse, ProductBatchResponse, ProductUsageDto } from '@/features/inventory/schemas/inventorySchemas';
 import { PosProductGrid } from '../components/PosProductGrid';
 import { PosCart } from '../components/PosCart';
@@ -21,14 +21,18 @@ export function PosPage() {
   const debouncedSearchTerm = useDebounce(searchTerm, 350);
   const [selectedDepartmentId, setSelectedDepartmentId] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
-  const [pageNumber, setPageNumber] = useState(1);
   const [selectedProduct, setSelectedProduct] = useState<ProductResponse | null>(null);
   const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
   const [checkoutMethod, setCheckoutMethod] = useState<PaymentMethod | null>(null);
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const [completedInvoice, setCompletedInvoice] = useState<SalesInvoiceResponse | null>(null);
-  const { data: productsData, isLoading: isLoadingProducts } = useProducts({
-    pageNumber: pageNumber,
+  const {
+    items: products,
+    isLoading: isLoadingProducts,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useInfiniteProducts({
     pageSize: 8,
     searchValue: debouncedSearchTerm || undefined,
     categoryId: selectedCategoryId || undefined,
@@ -36,9 +40,6 @@ export function PosPage() {
     excludeUsage: ProductUsageDto.MaintenanceOnly,
   });
   const createInvoiceMutation = useCreateSalesInvoice();
-  useEffect(() => {
-    setPageNumber(1);
-  }, [debouncedSearchTerm, selectedDepartmentId, selectedCategoryId]);
   useEffect(() => {
     setTitle('نقطة البيع (POS)');
     setBackButton(false);
@@ -101,7 +102,7 @@ export function PosPage() {
     <div className="-m-6 w-[calc(100%+3rem)] h-[calc(100vh-theme(spacing.16))] bg-gray-50 overflow-hidden flex flex-col lg:flex-row relative">
       <div className="flex-1 overflow-hidden relative pb-[80px] lg:pb-0">
         <PosProductGrid
-          products={productsData?.items || []}
+          products={products}
           isLoading={isLoadingProducts}
           onProductClick={handleProductClick}
           searchTerm={searchTerm}
@@ -110,9 +111,9 @@ export function PosPage() {
           setSelectedDepartmentId={setSelectedDepartmentId}
           selectedCategoryId={selectedCategoryId}
           setSelectedCategoryId={setSelectedCategoryId}
-          pageNumber={pageNumber}
-          setPageNumber={setPageNumber}
-          totalPages={productsData?.totalPages || 1}
+          hasNextPage={hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
+          onLoadMore={() => fetchNextPage()}
         />
       </div>
       {}

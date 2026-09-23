@@ -3,6 +3,7 @@ import { Spinner } from "./Spinner";
 import { TablePagination } from "./TablePagination";
 import { EmptyState } from "./EmptyState";
 import { tokens } from "@/shared/styles/tokens";
+import { useInfiniteScrollTrigger } from "@/shared/hooks/useInfiniteScrollTrigger";
 
 export interface Column<T> {
   header: string;
@@ -14,32 +15,53 @@ interface DataTableProps<T> {
   columns: Column<T>[];
   data: T[];
   isLoading?: boolean;
-  pageIndex?: number;
-  totalPages?: number;
-  totalCount?: number;
-  pageSize?: number;
-  onNextPage?: () => void;
-  onPrevPage?: () => void;
-  hidePagination?: boolean;
   onRowClick?: (row: T) => void;
   /** Arabic noun phrase for the empty state, e.g. "فواتير مبيعات". Defaults to a generic message. */
   emptyEntity?: string;
+  totalCount?: number;
+
+  // Pagination visbility
+  hidePagination?: boolean;
+
+  // Infinite-scroll pagination: pass onLoadMore to enable it. Auto-fetches the next
+  // page when the user scrolls near the bottom, instead of showing prev/next buttons.
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
+  onLoadMore?: () => void;
+
+  // Legacy prev/next button pagination, still used by tables not yet migrated to infinite
+  // scroll. Ignored once onLoadMore is passed.
+  pageIndex?: number;
+  totalPages?: number;
+  pageSize?: number;
+  onNextPage?: () => void;
+  onPrevPage?: () => void;
 }
 
 export function DataTable<T>({
   columns,
   data,
   isLoading,
+  onRowClick,
+  emptyEntity,
+  totalCount,
+  hidePagination,
+  hasNextPage,
+  isFetchingNextPage,
+  onLoadMore,
   pageIndex,
   totalPages,
-  totalCount,
   pageSize,
   onNextPage,
   onPrevPage,
-  hidePagination,
-  onRowClick,
-  emptyEntity,
 }: DataTableProps<T>) {
+  const isInfiniteScroll = typeof onLoadMore === "function";
+
+  const sentinelRef = useInfiniteScrollTrigger(
+    () => onLoadMore?.(),
+    isInfiniteScroll && !!hasNextPage && !isLoading && !isFetchingNextPage
+  );
+
   return (
     <div className={tokens.table.wrapper}>
       <div className="overflow-x-auto p-4 md:p-0">
@@ -99,16 +121,34 @@ export function DataTable<T>({
         </table>
       </div>
 
-      {!hidePagination && pageIndex !== undefined && totalPages !== undefined && totalCount !== undefined && pageSize !== undefined && onNextPage && onPrevPage && (
-        <TablePagination
-          pageIndex={pageIndex}
-          totalPages={totalPages}
-          totalCount={totalCount}
-          pageSize={pageSize}
-          isLoading={isLoading}
-          onNextPage={onNextPage}
-          onPrevPage={onPrevPage}
-        />
+      {!hidePagination && (
+        isInfiniteScroll ? (
+          !isLoading &&
+          data.length > 0 && (
+            <div className="px-4 py-3 border-t border-gray-200 flex flex-col items-center gap-2 text-sm text-gray-500">
+              <span>
+                عرض {data.length} من أصل {totalCount ?? data.length} سجل
+              </span>
+              {isFetchingNextPage && (
+                <div className="flex items-center gap-2 text-gray-400">
+                  <Spinner size={16} />
+                  جاري تحميل المزيد...
+                </div>
+              )}
+              {hasNextPage && !isFetchingNextPage && <div ref={sentinelRef} className="h-px w-full" />}
+            </div>
+          )
+        ) : (
+          <TablePagination
+            pageIndex={pageIndex ?? 1}
+            totalPages={totalPages ?? 1}
+            totalCount={totalCount ?? 0}
+            pageSize={pageSize ?? 0}
+            isLoading={isLoading}
+            onNextPage={onNextPage ?? (() => {})}
+            onPrevPage={onPrevPage ?? (() => {})}
+          />
+        )
       )}
     </div>
   );

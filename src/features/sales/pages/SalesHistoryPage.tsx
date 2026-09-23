@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import { useSalesInvoices } from '../hooks/useSales';
 import { DataTable } from '@/shared/components/ui/DataTable';
@@ -19,7 +19,6 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 export function SalesHistoryPage() {
   const { hasAnyRole } = useAuth();
   const canExport = hasAnyRole(['Admin', 'Manager']);
-  const [pageIndex, setPageIndex] = useState(1);
   const pageSize = 10;
   const [searchValue, setSearchValue] = useState('');
   const debouncedSearch = useDebounce(searchValue, 500);
@@ -29,11 +28,7 @@ export function SalesHistoryPage() {
   const [paymentMethod, setPaymentMethod] = useState('');
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
   const navigate = useNavigate();
-  useEffect(() => {
-    setPageIndex(1);
-  }, [debouncedSearch, startDate, endDate, saleType, paymentMethod]);
-  const { data, isLoading } = useSalesInvoices({
-    pageNumber: pageIndex,
+  const { items, totalCount, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage } = useSalesInvoices({
     pageSize,
     searchValue: debouncedSearch,
     startDate: startDate ? toUtcStartOfDayISOString(startDate) : undefined,
@@ -108,14 +103,12 @@ export function SalesHistoryPage() {
         <div className="p-3 sm:p-5 overflow-x-auto">
           <DataTable
             columns={columns}
-            data={data?.items || []}
+            data={items}
             isLoading={isLoading}
-            totalCount={data?.totalCount || 0}
-            pageSize={pageSize}
-            pageIndex={pageIndex}
-            totalPages={data?.totalPages || 1}
-            onNextPage={() => setPageIndex(p => Math.min(p + 1, data?.totalPages || 1))}
-            onPrevPage={() => setPageIndex(p => Math.max(p - 1, 1))}
+            totalCount={totalCount}
+            hasNextPage={hasNextPage}
+            isFetchingNextPage={isFetchingNextPage}
+            onLoadMore={() => fetchNextPage()}
             onRowClick={(row) => setSelectedInvoiceId(row.id)}
             emptyEntity="فواتير مبيعات"
           />

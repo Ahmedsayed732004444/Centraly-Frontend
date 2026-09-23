@@ -1,12 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { walletApi } from "../api/WalletApi";
 import { WalletOperationFilter } from "../schemas/walletSchemas";
+import { useInfiniteResource } from "@/shared/hooks/useInfiniteResource";
 
 export function useGlobalWalletOperations(filter: WalletOperationFilter) {
-  const operationsQuery = useQuery({
-    queryKey: ["global-wallet-operations", filter],
-    queryFn: () => walletApi.getWalletOperations(filter),
-  });
+  const operationsQuery = useInfiniteResource(
+    ["global-wallet-operations"],
+    (f) => walletApi.getWalletOperations(f),
+    filter
+  );
 
   const summaryQuery = useQuery({
     queryKey: ["global-wallet-operations-summary", filter],
@@ -14,11 +16,13 @@ export function useGlobalWalletOperations(filter: WalletOperationFilter) {
   });
 
   return {
-    operations: operationsQuery.data?.items ?? [],
-    totalPages: operationsQuery.data?.totalPages ?? 1,
-    totalCount: operationsQuery.data?.totalCount ?? 0,
+    operations: operationsQuery.items,
+    totalCount: operationsQuery.totalCount ?? 0,
+    hasNextPage: operationsQuery.hasNextPage,
+    isFetchingNextPage: operationsQuery.isFetchingNextPage,
+    fetchNextPage: operationsQuery.fetchNextPage,
     isLoadingOperations: operationsQuery.isLoading,
-    
+
     totalProfit: summaryQuery.data?.totalProfit ?? 0,
     isLoadingSummary: summaryQuery.isLoading,
   };
