@@ -96,7 +96,7 @@ export function MaintenancePage() {
           />}
           <button
             onClick={() => setIsCreateOpen(true)}
-            className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors w-full sm:w-auto shrink-0"
+            className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors flex-1 sm:flex-none sm:w-auto"
           >
             <Plus className="w-4 h-4" />
             تذكرة جديدة

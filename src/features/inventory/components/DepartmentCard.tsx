@@ -29,26 +29,26 @@ export function DepartmentCard({
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       {/* Department Header */}
       <div 
-        className={`p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors ${isExpanded ? 'border-b border-gray-100 bg-gray-50' : ''}`}
+        className={`p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer hover:bg-gray-50 transition-colors ${isExpanded ? 'border-b border-gray-100 bg-gray-50' : ''}`}
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-3">
-          <button className="text-gray-400 hover:text-blue-600 transition-colors">
+          <button className="text-gray-400 hover:text-blue-600 transition-colors shrink-0">
             {isExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
           </button>
-          <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
             <Layers size={20} />
           </div>
-          <div>
-            <h3 className="font-bold text-gray-800 text-lg">{department.name}</h3>
-            <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
+          <div className="min-w-0 flex-1">
+            <h3 className="font-bold text-gray-800 text-lg truncate">{department.name}</h3>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 mt-1">
               <span className="flex items-center gap-1"><Tag size={12}/> {department.categoriesCount} أقسام فرعية</span>
               <span className="flex items-center gap-1"><Package size={12}/> {department.productsCount} منتجات</span>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 justify-end mr-12 sm:mr-0">
           <HasPermission permission={Permissions.InventoryWrite}>
             <button
               type="button"
@@ -56,7 +56,7 @@ export function DepartmentCard({
                 e.stopPropagation();
                 onAddCategory(department.departmentId);
               }}
-              className="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors bg-blue-50 px-3 py-1.5 rounded-lg flex items-center gap-1 mr-2"
+              className="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors bg-blue-50 px-3 py-1.5 rounded-lg flex items-center justify-center gap-1 sm:mr-2 flex-1 sm:flex-none whitespace-nowrap"
             >
               <Plus size={16} /> إضافة قسم فرعي
             </button>

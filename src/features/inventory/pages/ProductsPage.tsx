@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import * as z from 'zod';
 import { useNavigate } from 'react-router-dom';
+import { Plus } from 'lucide-react';
+import { HasPermission } from '@/features/auth/components/HasPermission';
+import { Permissions } from '@/features/auth/schemas/permissions';
 import { createProductSchema, CreateProductRequest } from '../schemas/inventorySchemas';
 import { useProducts, useCreateProduct, useDeleteProduct } from '@/features/inventory/hooks/useInventory';
 import { RightDrawer } from '@/shared/components/ui/RightDrawer';
@@ -131,6 +134,17 @@ export function ProductsPage() {
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-end items-center">
+        <HasPermission permission={Permissions.InventoryWrite}>
+          <button 
+            onClick={() => setIsDrawerOpen(true)} 
+            className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors w-full sm:w-auto"
+          >
+            <Plus size={20} />
+            <span>إضافة منتج جديد</span>
+          </button>
+        </HasPermission>
+      </div>
 
       {/* Filter toolbar */}
       <ProductFilters
@@ -144,7 +158,6 @@ export function ProductsPage() {
         onStockChange={handleStockChange}
         usageFilter={usageFilter}
         onUsageChange={handleUsageChange}
-        onAddClick={() => setIsDrawerOpen(true)}
       />
 
       <div className="flex justify-end">
