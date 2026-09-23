@@ -4,6 +4,8 @@ import { useFinancePolicies, useUpdateFinancePolicy } from '../hooks/useFinanceP
 import { GlobalTransactionCategory, PaymentSourcePolicy } from '../schemas/financeSchemas';
 import { tokens } from '@/shared/styles/tokens';
 import { ShieldAlert, Loader2, Info } from 'lucide-react';
+import { DataTable } from '@/shared/components/ui/DataTable';
+
 export function FinancePoliciesPage() {
   const { setTitle, setBackButton } = useHeaderStore();
   const { data: policies, isLoading } = useFinancePolicies();
@@ -86,75 +88,78 @@ export function FinancePoliciesPage() {
   }
   return (
     <div className="space-y-6">
-      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 sm:p-5 flex gap-4">
-        <ShieldAlert className="text-amber-600 flex-shrink-0" size={28} />
-        <div>
-          <h3 className="font-bold text-amber-800 text-lg mb-1">لوحة تحكم المدير: سياسات مصادر الأموال</h3>
-          <p className="text-amber-700 leading-relaxed">
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+        <ShieldAlert className="text-amber-600 shrink-0 hidden sm:block" size={28} />
+        <div className="text-right">
+          <h3 className="font-bold text-amber-800 text-lg mb-2 flex items-center gap-2">
+            <ShieldAlert className="text-amber-600 shrink-0 sm:hidden" size={24} />
+            لوحة تحكم المدير: سياسات مصادر الأموال
+          </h3>
+          <p className="text-amber-700 leading-relaxed text-sm sm:text-base">
             من هنا يمكنك التحكم في المصدر المالي الإجباري لكل حركة في النظام.
             <strong> الدرج فقط (Drawer Only): </strong>يُجبر النظام على سحب/إيداع الأموال من درج الكاشير للوردية الحالية.
             <strong> الخزينة فقط (Safe Only): </strong>يُجبر النظام على التعامل مع الخزينة الرئيسية.
             <strong> اختياري (Either): </strong>يطلب من المستخدم اختيار المصدر أثناء تنفيذ العملية.
-            <em>أي تعديل هنا يتم تطبيقه فوراً على كل شاشات النظام.</em>
+            <em className="block mt-1">أي تعديل هنا يتم تطبيقه فوراً على كل شاشات النظام.</em>
           </p>
         </div>
       </div>
-      <div className={`${tokens.card} overflow-hidden`}>
-        <div className="overflow-x-auto -webkit-overflow-scrolling-touch">
-          <table className="w-full min-w-[640px] text-right">
-            <thead className="border-b border-gray-100">
-              <tr>
-                <th className="px-4 sm:px-6 py-3 font-semibold text-gray-500 text-xs">نوع العملية المالية</th>
-                <th className="px-4 sm:px-6 py-3 font-semibold text-gray-500 text-xs w-56 sm:w-72">السياسة المطبقة (مصدر الأموال)</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {policies?.map((policy) => (
-                <tr key={policy.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-4 sm:px-6 py-4">
-                      <div className="font-semibold text-gray-900 flex items-center gap-2">
-                        {categoryLabels[policy.category] || policy.category}
-                        <button
-                          type="button"
-                          onClick={() => setActiveDescription(activeDescription === policy.category ? null : policy.category)}
-                          className="text-gray-400 hover:text-blue-600 transition-colors focus:outline-none shrink-0"
-                        >
-                          <Info size={16} />
-                        </button>
-                      </div>
-                      <div className="text-xs text-gray-500 font-mono mt-1 opacity-70">{policy.category}</div>
-                      {activeDescription === policy.category && (
-                        <div className="mt-2 p-3 bg-blue-50 text-blue-800 text-sm leading-relaxed rounded-lg border border-blue-100 shadow-sm whitespace-pre-wrap animate-in fade-in slide-in-from-top-1 max-w-md">
-                          {categoryDescriptions[policy.category]}
-                        </div>
-                      )}
-                    </td>
-                  <td className="px-4 sm:px-6 py-4">
-                    <div className="relative">
-                      <select
-                        value={policy.allowedSource}
-                        onChange={(e) => handlePolicyChange(policy.category, e.target.value)}
-                        disabled={isPending && updatingId === policy.category}
-                        className={`${tokens.input} bg-white font-semibold cursor-pointer appearance-none ${
-                          policy.allowedSource === 'DrawerOnly' ? 'text-blue-700 border-blue-200 bg-blue-50' :
-                          policy.allowedSource === 'SafeOnly' ? 'text-emerald-700 border-emerald-200 bg-emerald-50' :
-                          'text-purple-700 border-purple-200 bg-purple-50'
-                        }`}
-                      >
-                        <option value="DrawerOnly">الدرج فقط (Drawer Only)</option>
-                        <option value="SafeOnly">الخزينة فقط (Safe Only)</option>
-                        <option value="Either">الدرج أو الخزينة (Either)</option>
-                      </select>
-                      {isPending && updatingId === policy.category && (
-                        <Loader2 className="absolute left-3 top-2.5 w-5 h-5 text-gray-400 animate-spin" />
-                      )}
+      
+      <div className="overflow-hidden">
+        <DataTable
+          columns={[
+            {
+              header: 'نوع العملية المالية',
+              cell: (policy: any) => (
+                <div className="py-2 text-right">
+                  <div className="font-semibold text-gray-900 flex items-center gap-2">
+                    {categoryLabels[policy.category] || policy.category}
+                    <button
+                      type="button"
+                      onClick={() => setActiveDescription(activeDescription === policy.category ? null : policy.category)}
+                      className="text-gray-400 hover:text-blue-600 transition-colors focus:outline-none shrink-0"
+                    >
+                      <Info size={16} />
+                    </button>
+                  </div>
+                  <div className="text-xs text-gray-500 font-mono mt-1 opacity-70">{policy.category}</div>
+                  {activeDescription === policy.category && (
+                    <div className="mt-2 p-3 bg-blue-50 text-blue-800 text-sm leading-relaxed rounded-lg border border-blue-100 shadow-sm whitespace-pre-wrap animate-in fade-in slide-in-from-top-1">
+                      {categoryDescriptions[policy.category]}
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  )}
+                </div>
+              ),
+            },
+            {
+              header: 'مصدر الأموال',
+              cell: (policy: any) => (
+                <div className="relative w-full min-w-[130px] sm:w-64 py-1">
+                  <select
+                    value={policy.allowedSource}
+                    onChange={(e) => handlePolicyChange(policy.category, e.target.value)}
+                    disabled={isPending && updatingId === policy.category}
+                    className={`w-full px-2 sm:px-3 py-2 sm:py-2.5 rounded-lg border text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 outline-none font-bold cursor-pointer transition-colors ${
+                      policy.allowedSource === 'DrawerOnly' ? 'text-blue-700 border-blue-300 bg-blue-50/50 hover:bg-blue-50' :
+                      policy.allowedSource === 'SafeOnly' ? 'text-emerald-700 border-emerald-300 bg-emerald-50/50 hover:bg-emerald-50' :
+                      'text-purple-700 border-purple-300 bg-purple-50/50 hover:bg-purple-50'
+                    }`}
+                  >
+                    <option value="DrawerOnly">الدرج فقط</option>
+                    <option value="SafeOnly">الخزينة فقط</option>
+                    <option value="Either">الدرج أو الخزينة</option>
+                  </select>
+                  {isPending && updatingId === policy.category && (
+                    <Loader2 className="absolute left-3 top-2.5 w-4 h-4 sm:w-5 sm:h-5 text-gray-400 animate-spin" />
+                  )}
+                </div>
+              ),
+            },
+          ]}
+          data={policies || []}
+          hidePagination
+          emptyEntity="سياسات"
+        />
       </div>
     </div>
   );

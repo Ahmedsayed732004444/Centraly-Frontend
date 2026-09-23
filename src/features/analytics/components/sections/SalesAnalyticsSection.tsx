@@ -22,7 +22,7 @@ export function SalesAnalyticsSection({ filters, rangeLabel }: SalesAnalyticsSec
 
   return (
     <div className="space-y-6">
-      <p className="text-xs text-gray-500">الأرقام قبل خصم المرتجعات</p>
+      <p className="text-xs text-gray-500 text-right">الأرقام قبل خصم المرتجعات</p>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={Wallet} accent="text-emerald-600" label="إجمالي المبيعات" value={isLoadingSummary ? '...' : formatCurrency(summary?.totalRevenue || 0)} />

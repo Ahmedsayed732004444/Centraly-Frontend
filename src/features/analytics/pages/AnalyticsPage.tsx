@@ -42,32 +42,36 @@ export function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-            <BarChart3 size={20} />
+      <div className="flex flex-col sm:flex-row sm:justify-between items-center gap-4 sm:gap-6 bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-center text-center sm:text-right gap-3">
+          <div className="w-12 h-12 sm:w-10 sm:h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <BarChart3 className="w-6 h-6 sm:w-5 sm:h-5" />
           </div>
           <div>
-            <h1 className="text-lg sm:text-xl font-bold text-gray-800">لوحة التحليلات</h1>
-            <p className="text-xs text-gray-500 mt-0.5">نظرة شاملة على أداء المحل حسب القسم</p>
+            <h1 className="text-xl font-bold text-gray-800">لوحة التحليلات</h1>
+            <p className="text-sm sm:text-xs text-gray-500 mt-1 sm:mt-0.5">نظرة شاملة على أداء المحل حسب القسم</p>
           </div>
         </div>
-        <DateRangeFilter startDate={range.start} endDate={range.end} onChange={(start, end) => setRange({ start, end })} />
+        <div className="w-full sm:w-auto">
+          <DateRangeFilter startDate={range.start} endDate={range.end} onChange={(start, end) => setRange({ start, end })} />
+        </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
-        <div className="flex items-center gap-1 px-2" dir="rtl">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-2 sm:p-3">
+        <div className="flex flex-wrap items-center gap-2" dir="rtl">
           {TABS.map((t) => (
             <button
               key={t.key}
               type="button"
               onClick={() => setTab(t.key)}
-              className={`flex items-center gap-2 py-3 px-4 sm:px-5 font-semibold text-sm border-b-2 transition-colors whitespace-nowrap ${
-                tab === t.key ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+              className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 sm:px-4 font-semibold text-xs sm:text-sm rounded-xl transition-all whitespace-nowrap grow sm:grow-0 ${
+                tab === t.key 
+                  ? 'bg-blue-50 text-blue-700 border border-blue-100 shadow-sm' 
+                  : 'bg-gray-50/80 text-gray-600 border border-gray-100 hover:bg-gray-100 hover:text-gray-800'
               }`}
             >
-              <t.icon size={16} />
-              {t.label}
+              <t.icon size={16} className="shrink-0" />
+              <span>{t.label}</span>
             </button>
           ))}
         </div>
