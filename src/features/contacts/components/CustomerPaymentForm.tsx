@@ -43,10 +43,40 @@ export function CustomerPaymentForm({
         </button>
       </div>
 
-      <div className="bg-orange-50 p-4 rounded-xl border border-orange-100">
-        <p className="text-sm font-semibold text-orange-800 mb-1">المديونية الحالية</p>
-        <p className="text-2xl font-bold text-orange-900" dir="ltr">{formatCurrency(currentBalance)}</p>
-      </div>
+      {!isRefund ? (
+        currentBalance > 0 ? (
+          <div className="bg-orange-50 p-4 rounded-xl border border-orange-100 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-orange-800 mb-1">المديونية المستحقة (عليه)</p>
+              <p className="text-2xl font-bold text-orange-900" dir="ltr">{formatCurrency(currentBalance)}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => onPaymentAmountChange(String(currentBalance))}
+              className="text-xs font-bold px-3 py-2 bg-orange-200/80 hover:bg-orange-200 text-orange-900 rounded-lg transition-colors border border-orange-300 shrink-0"
+            >
+              سداد كامل المبلغ
+            </button>
+          </div>
+        ) : (
+          <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-200">
+            <p className="text-sm font-semibold text-emerald-800 mb-1">حالة الحساب</p>
+            <p className="text-base font-bold text-emerald-900">
+              {currentBalance === 0 ? "خالص (0 ج.م - لا توجد أي مديونية مستحقة)" : `له رصيد دائن: ${formatCurrency(Math.abs(currentBalance))}`}
+            </p>
+            <p className="text-xs text-emerald-700 mt-1.5 font-medium leading-relaxed">
+              ⚠️ تنبيه: العميل ليس عليه ديون حالياً. إدخال دفعة جديدة هنا سيُضاف كرصيد دائن لصالح العميل.
+            </p>
+          </div>
+        )
+      ) : (
+        <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+          <p className="text-sm font-semibold text-blue-800 mb-1">المستحق للعميل (له)</p>
+          <p className="text-2xl font-bold text-blue-900" dir="ltr">
+            {currentBalance < 0 ? formatCurrency(Math.abs(currentBalance)) : '0 ج.م'}
+          </p>
+        </div>
+      )}
 
       <div>
         <label className="block text-sm font-semibold text-gray-700 mb-2">

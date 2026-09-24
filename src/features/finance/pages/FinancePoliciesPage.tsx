@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useHeaderStore } from '@/shared/hooks/useHeaderStore';
 import { useFinancePolicies, useUpdateFinancePolicy } from '../hooks/useFinancePolicies';
 import { GlobalTransactionCategory, PaymentSourcePolicy } from '../schemas/financeSchemas';
-import { tokens } from '@/shared/styles/tokens';
 import { ShieldAlert, Loader2, Info } from 'lucide-react';
 import { DataTable } from '@/shared/components/ui/DataTable';
 
