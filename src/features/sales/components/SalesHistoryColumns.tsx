@@ -54,10 +54,46 @@ export const getSalesHistoryColumns = (
     header: 'طريقة الدفع',
     cell: (row: SalesInvoiceResponse) => {
       const isCash = row.paymentMethod === PaymentMethod.Cash;
+      const isFullyPaid = row.remainingAmount <= 0;
+
+      if (isCash) {
+        return (
+          <Badge variant="success">
+            كاش (نقدي)
+          </Badge>
+        );
+      }
+
+      if (isFullyPaid) {
+        return (
+          <Badge variant="success">
+            آجل (مسدد)
+          </Badge>
+        );
+      }
+
+      if (row.paidAmount > 0) {
+        return (
+          <div className="flex flex-col items-start gap-0.5">
+            <Badge variant="warning">
+              آجل (سداد جزئي)
+            </Badge>
+            <span className="text-[10px] text-amber-700 font-bold" dir="ltr">
+              متبقي: {formatCurrency(row.remainingAmount)}
+            </span>
+          </div>
+        );
+      }
+
       return (
-        <Badge variant={isCash ? 'success' : 'warning'}>
-          {isCash ? 'كاش (نقدي)' : 'آجل (ذمة)'}
-        </Badge>
+        <div className="flex flex-col items-start gap-0.5">
+          <Badge variant="danger">
+            آجل (غير مدفوع)
+          </Badge>
+          <span className="text-[10px] text-red-600 font-bold" dir="ltr">
+            متبقي: {formatCurrency(row.remainingAmount)}
+          </span>
+        </div>
       );
     },
   },

@@ -69,13 +69,14 @@ export function PosPage() {
     setCheckoutMethod(method);
     setIsCheckoutModalOpen(true);
   };
-  const handleConfirmCheckout = (customerName: string, customerPhone: string, paidAmount: number, paymentSource?: number, saleType: SaleType = SaleType.Retail) => {
-    if (!checkoutMethod) return;
+  const handleConfirmCheckout = (customerName: string, customerPhone: string, paidAmount: number, paymentSource?: number, saleType: SaleType = SaleType.Retail, method?: PaymentMethod) => {
+    const finalMethod = method || checkoutMethod;
+    if (!finalMethod) return;
     createInvoiceMutation.mutate({
       customerName: customerName.trim() || undefined,
       customerPhone: customerPhone.trim() || undefined,
       saleType: saleType,
-      paymentMethod: checkoutMethod,
+      paymentMethod: finalMethod,
       paidAmount: paidAmount,
       paymentSource: paymentSource,
       items: cart.items.map((item) => ({

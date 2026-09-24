@@ -67,11 +67,18 @@ export function InvoiceDetailsModal({ isOpen, onClose, invoiceId }: InvoiceDetai
                   {formatCurrency(invoice.paidAmount)}
                 </span>
               </div>
-              <div className="bg-red-50 rounded-xl p-3 sm:p-4 border border-red-100">
-                <span className="text-sm text-[var(--color-danger)] block mb-1">المتبقي (آجل)</span>
-                <span className="text-xl font-bold text-[var(--color-danger)]" dir="ltr">
-                  {formatCurrency(invoice.remainingAmount)}
+              <div className={invoice.remainingAmount > 0 ? "bg-red-50 rounded-xl p-3 sm:p-4 border border-red-100" : "bg-gray-50 rounded-xl p-3 sm:p-4 border border-gray-100"}>
+                <span className={`text-sm block mb-1 ${invoice.remainingAmount > 0 ? "text-[var(--color-danger)]" : "text-gray-500"}`}>
+                  {invoice.remainingAmount > 0 ? "المتبقي (آجل)" : "المتبقي"}
                 </span>
+                <div className="flex items-baseline gap-2">
+                  <span className={`text-xl font-bold ${invoice.remainingAmount > 0 ? "text-[var(--color-danger)]" : "text-gray-700"}`} dir="ltr">
+                    {formatCurrency(invoice.remainingAmount)}
+                  </span>
+                  {invoice.remainingAmount <= 0 && (
+                    <span className="text-xs font-semibold text-emerald-600">(خالصة بالكامل)</span>
+                  )}
+                </div>
               </div>
             </div>
             <div>

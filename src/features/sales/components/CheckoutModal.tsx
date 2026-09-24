@@ -11,7 +11,7 @@ interface CheckoutModalProps {
   onClose: () => void;
   totalAmount: number;
   paymentMethod: PaymentMethod | null;
-  onConfirm: (customerName: string, customerPhone: string, paidAmount: number, paymentSource?: PaymentSource, saleType?: SaleType) => void;
+  onConfirm: (customerName: string, customerPhone: string, paidAmount: number, paymentSource?: PaymentSource, saleType?: SaleType, method?: PaymentMethod) => void;
   isSubmitting: boolean;
 }
 export function CheckoutModal({
@@ -52,7 +52,7 @@ export function CheckoutModal({
         return;
       }
       if (paid >= totalAmount) {
-        setError('لا يمكن أن يكون المبلغ المدفوع أكبر من أو يساوي الإجمالي في حالة البيع الآجل');
+        setError('لا يمكن أن يكون المبلغ المدفوع مساوياً أو أكبر من الإجمالي في حالة البيع الآجل. يرجى اختيار دفع كاش.');
         return;
       }
     } else if (paid < totalAmount) {
@@ -65,7 +65,8 @@ export function CheckoutModal({
       if (!source) return; // User closed the prompt
       finalSource = source;
     }
-    onConfirm(customerName, customerPhone, isCredit ? paid : totalAmount, finalSource, saleType);
+    const resolvedMethod = (isCredit && paid < totalAmount) ? PaymentMethod.Deferred : PaymentMethod.Cash;
+    onConfirm(customerName, customerPhone, isCredit ? paid : totalAmount, finalSource, saleType, resolvedMethod);
   };
   return (
     <>
